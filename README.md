@@ -1,6 +1,8 @@
-# 🗳️ Pennsylvania Mail-in Ballot Application Batch Printer
+# 🗳️ PA Ballot Application Suite (`mib-pdf-maker`)
 
-An ultra-secure, client-side React web utility built with **Vite** and styled with **Tailwind CSS**. It enables county election offices, advocacy groups, and organizers to parse voter spreadsheets (CSV) and batch-generate filled, print-ready, official Pennsylvania Mail-in Ballot Applications (PDF) in seconds.
+An ultra-secure, 100% client-side React web utility built with **Vite**, **TypeScript**, and styled with **Tailwind CSS**. 
+
+The PA Ballot Application Suite enables county election offices, voter outreach groups, and organizers to securely manage voter registration and ballot applications. It offers bulk database parsing, manual individual form pre-filling, county address routing sheet generation, and illustrated printing help guides.
 
 ---
 
@@ -9,21 +11,41 @@ An ultra-secure, client-side React web utility built with **Vite** and styled wi
 Voter databases contain critical Personally Identifiable Information (PII) like names, phone numbers, birthdates, and residential addresses. This application is engineered with a **Zero-Server storage and processing model**:
 
 1. **Local Parsing**: The uploaded CSV spreadsheet is parsed directly inside the browser using `papaparse`.
-2. **Local PDF Overlay**: Modifying and filling the official PDF template is done directly in the browser using `pdf-lib`.
-3. **Consolidated Merging**: Individual pages are compiled and consolidated into a single multi-page batch download file entirely in-memory.
-4. **No Remote Uploads**: **No voter data is ever sent over the network, saved on a database, or stored on a server.** Once you close the browser tab, all session data is permanently erased.
+2. **Local PDF Overlay**: Modifying and pre-filling the official PDF templates is done directly in the browser using `pdf-lib`.
+3. **No Remote Uploads**: **No voter data is ever sent over the network, saved on a database, or stored on a server.** Once you close the browser tab, all session data is permanently erased.
+4. **Offline Font Assets**: Embeds standard PDF specification fonts or loads custom CDN typography into secure browser cache.
 
 ---
 
-## 🚀 Key Features
+## 🚀 Key Features & Workspace Modules
 
-* **Visual CSV Upload**: Clean drag-and-drop dashboard to ingest voter database spreadsheets.
-* **Rigid Schema Validation**: Checks for required headers (even if blank) and automatically warns if any are missing or misnamed.
-* **Circular Progress Dialog**: Shows smooth percentage completion progress as it writes ballpoint blue text onto each page.
-* **Auto-Download Trigger**: Saves the finished file and initiates a batch download automatically.
-* **Single Alignment Test Sheet**: Features a "Test Sheet" button next to each voter to output a single-page sample to check page margins before compiling a full 25-record batch.
-* **X,Y Coordinate Precision Tuner**: Built-in visual alignment controls to "nudge" text boxes in PDF points (Origin `0,0` is at the bottom-left of Letter size `612 x 792 pt`) to calibrate for varying printers.
-* **Local Sample CSV Downloader**: Downloads a pre-formatted mock CSV template so users can immediately test the application.
+The application is structured as a **Dashboard Shell** with a collapsible sidebar for seamless tool switching:
+
+### 1. 📁 CSV Batch Application Printer
+* **Drag-and-Drop Ingestion:** Ingest voter lists (up to 25 records per batch) with instant CSV schema checks.
+* **Consolidated Merging:** Merges multiple filled ballot request pages into a single, multi-page, print-ready PDF batch.
+* **Test Sheet:** Offers a "Test Sheet" button next to each voter record to print a single alignment preview before doing a major print run.
+* **Fine-Tuner:** Nudge field coordinates horizontally or vertically (in PDF points) directly from the browser window.
+
+### ✉️ 2. County Mailing Address Page
+* **County-Level Routing:** Select from **Berks**, **Chester**, **Delaware**, or **Montgomery** county to see their official Board of Elections address.
+* **Address Page PDF Overlay:** Generates a pre-filled `PADOS_address_page.pdf` with the selected address positioned exactly to align with standard windowed envelopes.
+* **Envelope Window Tuner:** Move the recipient address lines horizontally or vertically to match your physical envelope window sizes.
+* **UX Reminder:** Reminds operators they only need to print **one** copy of this sheet per batch.
+
+### 👤 3. New Resident Individual Pre-Filler
+* **Interactive Manual Form:** Type in individual registrations on the spot—perfect for real-time voter registration drives.
+* **Registration Template Integration:** Automatically writes coordinates and overlays fields on the official **`PADOS_Registration_Application.pdf`** template.
+
+### ❓ 4. Printing Help Guide
+* **Printer Scaling Guidelines:** Explicit instructions on printer scaling (e.g. setting Scale to **"Actual Size" / 100%** to avoid alignment shifts).
+* **Pre-flight Checklist:** Verify registrations, county destinations, and signature zones before shipping.
+
+---
+
+## 🎨 Typography
+
+To guarantee pristine legibility, the application fetches and embeds **Inter Medium (weight 500)** into the generated PDFs. This provides a modern, crisp semi-bold layout. If a network delay occurs, it gracefully falls back to standard **Helvetica-Bold**.
 
 ---
 
@@ -35,14 +57,14 @@ Voter databases contain critical Personally Identifiable Information (PII) like 
 * **Icons**: Lucide React
 * **CSV Engine**: PapaParse
 * **PDF Engine**: PDF-Lib (Client-side PDF compiler)
-* **Hosting**: Firebase Hosting
+* **Hosting**: Firebase Hosting (`mib-pdf-maker`)
 
 ---
 
 ## 💻 Local Quickstart
 
 ### Prerequisites
-* Node.js v18+ 
+* Node.js v20+ or v22+ (highly recommended)
 * npm v9+
 
 ### 1. Install Dependencies
@@ -61,40 +83,30 @@ To bundle the files and compile the production build:
 ```bash
 npm run build
 ```
-This generates a production-optimized `dist/` directory ready for any static web host.
+This generates a production-optimized `dist/` directory ready for static hosting.
 
 ---
 
 ## 🔥 Deploying to Firebase Hosting
 
-This project is pre-configured with `firebase.json` and a placeholder `.firebaserc`.
+This project is pre-configured with `firebase.json` and `.firebaserc` pointing to the `mib-pdf-maker` project ID.
 
 ### 1. Authenticate with Firebase CLI
-If you haven't installed the Firebase CLI or logged in, run:
 ```bash
-npm install -g firebase-tools
-firebase login
+npx firebase login
 ```
 
-### 2. Initialize Firebase Link
-Associate this folder with your Firebase account project:
-```bash
-firebase use --add
-```
-*Select your target Firebase project from the list, or create one in the [Firebase Console](https://console.firebase.google.com/).*
-
-### 3. Deploy Production Build
+### 2. Deploy Production Build
 Build and deploy the application with a single command:
 ```bash
-npm run build && firebase deploy --only hosting
+npm run build && npx firebase deploy --only hosting
 ```
-Once done, Firebase will output your global hosted secure HTTPS URL (e.g., `https://your-project-id.web.app`).
 
 ---
 
 ## 📁 Required CSV Schema
 
-For the app to parse files, the CSV spreadsheet columns must match these exact headers:
+For the batch parser, your CSV spreadsheet columns must match these exact headers:
 
 ```csv
 last_name,suffix,first_name,middle_name,birthdate,phone,email,address,suite_number,city,state,zip_code,municipality,county,precinct,ward,mailing_address,mailing_city,mailing_state,mailing_zip,annual_request
