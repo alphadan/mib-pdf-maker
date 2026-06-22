@@ -33,7 +33,7 @@ The application is structured as a **Dashboard Shell** with a collapsible sideba
 * **Envelope Window Tuner:** Move the recipient address lines horizontally or vertically to match your physical envelope window sizes.
 * **UX Reminder:** Reminds operators they only need to print **one** copy of this sheet per batch.
 
-### 👤 3. New Resident Individual Pre-Filler
+### 👤 3. New Movers Pre-Filler
 * **Interactive Manual Form:** Type in individual registrations on the spot—perfect for real-time voter registration drives.
 * **Registration Template Integration:** Automatically writes coordinates and overlays fields on the official **`PADOS_Registration_Application.pdf`** template.
 

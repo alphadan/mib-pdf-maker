@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
 import {
   Mail,
   Download,
@@ -119,6 +120,7 @@ export default function AddressPrinter({
 
       // 2. Load PDF
       const pdfDoc = await PDFDocument.load(templateBytes);
+      pdfDoc.registerFontkit(fontkit);
       const page = pdfDoc.getPages()[0];
 
       // 3. Fonts and Colors
@@ -226,7 +228,7 @@ export default function AddressPrinter({
               >
                 {isGenerating
                   ? "Pre-filling PDF..."
-                  : "Generate & Download Address Page"}
+                  : "Generate & Download Self-Mailer Page"}
                 <Download className="h-4 w-4" />
               </button>
             </div>

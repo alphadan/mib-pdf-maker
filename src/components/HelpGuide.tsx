@@ -69,12 +69,13 @@ export default function HelpGuide() {
               1
             </span>
             <h4 className="font-bold text-slate-900 text-sm">
-              Print Your Voter Applications
+              Create ONE PDF of County Self-Mailer Page
             </h4>
             <p className="text-slate-600 text-xs mt-1 leading-relaxed">
-              Use the <strong>CSV Batch Application Printer</strong> to generate
-              and download the consolidated ballot applications. Each
-              applicant's details will appear on a separate page.
+              Go to the <strong>County Self-Mailer Page</strong> tab, select the
+              county where your voters are registered, and create one PDF of the
+              address sheet. Print this single sheet for as many ballot
+              applications required.
             </p>
           </div>
 
@@ -84,14 +85,13 @@ export default function HelpGuide() {
               2
             </span>
             <h4 className="font-bold text-slate-900 text-sm">
-              Print ONE County Mailing Address Page
+              Print Your Voter Applications
             </h4>
             <p className="text-slate-600 text-xs mt-1 leading-relaxed">
-              Go to the <strong>County Address Page</strong> tab, select the
-              county where your voters are registered, and print{" "}
-              <strong>exactly one copy</strong> of the address sheet. This
-              single sheet can be copied or printed once and used to route all
-              completed ballot applications.
+              Use the <strong>CSV Batch Application Printer</strong> to generate
+              and download the consolidated ballot applications. Each
+              applicant's details will appear on a separate page. Print the
+              applicant details on the back side of the County Self-Mailer page.
             </p>
           </div>
 
@@ -105,9 +105,9 @@ export default function HelpGuide() {
             </h4>
             <p className="text-slate-600 text-xs mt-1 leading-relaxed">
               Have voters sign and date section 8 of their application. Fold the
-              signed application according to your envelope instructions, or
-              place it in a standard mailing envelope with your printed county
-              address page visible.
+              signed application according to your envelope instructions, follow
+              the instructions on the self-mailer page or place it in a standard
+              mailing envelope with your printed county address page visible.
             </p>
           </div>
         </div>

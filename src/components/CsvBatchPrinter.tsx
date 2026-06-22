@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import Papa from "papaparse";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
 import {
   FileSpreadsheet,
   Upload,
@@ -234,6 +235,7 @@ export default function CsvBatchPrinter({
 
         // Load a temporary instance of the template, modify it, and copy it
         const tempDoc = await PDFDocument.load(templateBytes);
+        tempDoc.registerFontkit(fontkit);
         const page = tempDoc.getPages()[0];
 
         // Embed the custom Inter-Medium font if loaded; fallback to standard Helvetica-Bold

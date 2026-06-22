@@ -32,13 +32,13 @@ export default function Layout({
     },
     {
       id: "county-address",
-      label: "County Address Page",
+      label: "County Self-Mailer Page",
       icon: Mail,
-      description: "Print routing sheet by county",
+      description: "Print self-mailer routing sheet",
     },
     {
       id: "new-resident",
-      label: "Individual Pre-Filler",
+      label: "New Movers Pre-Filler",
       icon: UserPlus,
       description: "Form-fill for single residents",
     },
@@ -61,7 +61,7 @@ export default function Layout({
             </div>
             <div>
               <h1 className="text-lg font-bold text-slate-900 leading-tight">
-                PA Ballot Application Suite
+                PA Ballot Application PreFiller
               </h1>
               <p className="text-[10px] text-slate-400 font-medium">
                 Batch Pre-Filling & County Mailing Manager
@@ -175,19 +175,19 @@ export default function Layout({
                 </div>
               </button>
             ))}
-          </nav>
 
-          {/* Privacy badge */}
-          <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 text-[11px] text-emerald-800 space-y-1">
-            <div className="flex items-center gap-1.5 font-bold text-emerald-950">
-              <ShieldCheck className="h-4.5 w-4.5 text-emerald-600" />
-              <span>PII Security Confirmed</span>
+            {/* Privacy badge inside sticky nav container */}
+            <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 text-[11px] text-emerald-800 space-y-1 mt-4">
+              <div className="flex items-center gap-1.5 font-bold text-emerald-950">
+                <ShieldCheck className="h-4.5 w-4.5 text-emerald-600" />
+                <span>PII Security Confirmed</span>
+              </div>
+              <p className="text-emerald-700 leading-relaxed text-[10px]">
+                No voter data or CSV spreadsheets ever leave your computer.
+                Processing occurs 100% in local memory.
+              </p>
             </div>
-            <p className="text-emerald-700 leading-relaxed text-[10px]">
-              No voter data or CSV spreadsheets ever leave your computer.
-              Processing occurs 100% in local memory.
-            </p>
-          </div>
+          </nav>
         </aside>
 
         {/* MAIN CONTENT WORKSPACE */}
