@@ -58,67 +58,6 @@ export default function CsvBatchPrinter({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const downloadSampleCSV = () => {
-    const sampleRows = [
-      {
-        last_name: "Smith",
-        suffix: "Jr",
-        first_name: "John",
-        middle_name: "Arthur",
-        birthdate: "10/14/1982",
-        phone: "717-555-0192",
-        email: "john.smith@example.org",
-        address: "124 Market St",
-        suite_number: "Apt 3B",
-        city: "Harrisburg",
-        state: "PA",
-        zip_code: "17101",
-        municipality: "Harrisburg City",
-        county: "Dauphin",
-        precinct: "Ward 4 Precinct 1",
-        ward: "4",
-        mailing_address: "",
-        mailing_city: "",
-        mailing_state: "",
-        mailing_zip: "",
-        annual_request: "yes",
-      },
-      {
-        last_name: "Rodriguez",
-        suffix: "",
-        first_name: "Maria",
-        middle_name: "Elena",
-        birthdate: "03/22/1990",
-        phone: "215-555-0481",
-        email: "maria.r90@example.net",
-        address: "5820 Germantown Ave",
-        suite_number: "",
-        city: "Philadelphia",
-        state: "PA",
-        zip_code: "19144",
-        municipality: "Philadelphia City",
-        county: "Philadelphia",
-        precinct: "Ward 12 Precinct 4",
-        ward: "12",
-        mailing_address: "P.O. Box 92831",
-        mailing_city: "Philadelphia",
-        mailing_state: "PA",
-        mailing_zip: "19106",
-        annual_request: "no",
-      },
-    ];
-
-    const csvContent = Papa.unparse(sampleRows);
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", "pa_voter_ballots_sample.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   const processCSV = (file: File) => {
     setValidationError(null);
     setMissingHeaders([]);
@@ -148,23 +87,55 @@ export default function CsvBatchPrinter({
           return;
         }
 
-        const data = results.data;
-        if (data.length === 0) {
+        const rawData = results.data;
+        if (rawData.length === 0) {
           setValidationError(
             "The CSV file does not contain any voter records.",
           );
           return;
         }
 
-        if (data.length > 25) {
+        if (rawData.length > 25) {
           setValidationError(
-            `Batch limit exceeded. You uploaded ${data.length} records, but the prototype is limited to a maximum of 25 records to protect memory and client performance.`,
+            `Batch limit exceeded. You uploaded ${rawData.length} records, but the prototype is limited to a maximum of 25 records to protect memory and client performance.`,
           );
           return;
         }
 
+        const mappedData = rawData.map((record: any) => {
+          return {
+            ...record,
+            last_name: record.Last_Name || "",
+            suffix: record.Suffix || "",
+            first_name: record.First_Name || "",
+            middle_name: record.Middle_Name || "",
+            birthdate: record.Date_Of_Birth || "",
+            phone: record["RNCfiles.PrimaryPhone"] || "",
+            suite_number: record.Apt__ || "",
+            city: record.City || "",
+            state: record.State || "",
+            zip_code: record.Zip_Code || "",
+            precinct: record.Precinct || "",
+            ward: record.Ward || "",
+            mailing_city: record.MCity || "",
+            mailing_state: record.MState || "",
+            mailing_zip: record.MZip_Code || "",
+
+            // Construct virtual compound fields for overlaying
+            address:
+              `${record.House__ || ""} ${record.StreetNameComplete || ""}`.trim(),
+            mailing_address:
+              `${record.MAddress_Line_1 || ""} ${record.MAddress_Line_2 || ""}`.trim(),
+            annual_request: String(record["VBM.AppType"] || "")
+              .toLowerCase()
+              .includes("annual")
+              ? "yes"
+              : "no",
+          };
+        });
+
         setCsvFile(file);
-        setRecords(data);
+        setRecords(mappedData);
         setActiveTab("preview");
       },
       error: (err) => {
@@ -409,7 +380,7 @@ export default function CsvBatchPrinter({
                 htmlFor="voter-csv-upload"
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
-                className="w-full max-w-lg border-2 border-dashed border-slate-300 rounded-2xl p-8 hover:border-blue-500 hover:bg-slate-50/50 transition-all cursor-pointer flex flex-col items-center group block"
+                className="w-full max-w-lg border-2 border-dashed border-slate-300 rounded-2xl p-8 hover:border-blue-500 hover:bg-slate-50/50 transition-all cursor-pointer flex flex-col items-center group"
               >
                 <div className="p-4 bg-blue-50 rounded-full text-blue-600 mb-4 group-hover:scale-110 transition-transform">
                   <Upload className="h-8 w-8" />
@@ -495,10 +466,10 @@ export default function CsvBatchPrinter({
                         Voter Name
                       </th>
                       <th className="px-4 py-3 border-b border-slate-200">
-                        Birthdate
+                        Age
                       </th>
                       <th className="px-4 py-3 border-b border-slate-200">
-                        County
+                        Party
                       </th>
                       <th className="px-4 py-3 border-b border-slate-200">
                         Address
@@ -517,10 +488,24 @@ export default function CsvBatchPrinter({
                         <td className="px-4 py-2.5 font-semibold text-slate-900">
                           {r.first_name} {r.last_name}
                         </td>
-                        <td className="px-4 py-2.5">{r.birthdate}</td>
+                        <td className="px-4 py-2.5 font-medium">
+                          {r["RNCfiles.Age"] || "N/A"}
+                        </td>
                         <td className="px-4 py-2.5">
-                          <span className="bg-blue-50 border border-blue-100 px-2 py-0.5 rounded text-[10px] font-semibold text-blue-700">
-                            {r.county}
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                              String(r["RNCfiles.OfficialParty"])
+                                .toLowerCase()
+                                .includes("dem")
+                                ? "bg-blue-50 border-blue-100 text-blue-700"
+                                : String(r["RNCfiles.OfficialParty"])
+                                      .toLowerCase()
+                                      .includes("rep")
+                                  ? "bg-red-50 border-red-100 text-red-700"
+                                  : "bg-slate-50 border-slate-100 text-slate-600"
+                            }`}
+                          >
+                            {r["RNCfiles.OfficialParty"] || "N/A"}
                           </span>
                         </td>
                         <td className="px-4 py-2.5 max-w-xs truncate">
@@ -627,12 +612,13 @@ export default function CsvBatchPrinter({
             </h3>
             <ol className="space-y-3.5 text-xs text-slate-600 list-decimal pl-4.5">
               <li>
-                <button
-                  onClick={downloadSampleCSV}
+                <a
+                  href="/pa_voter_ballots_sample.csv"
+                  download
                   className="text-blue-600 hover:underline font-semibold text-left focus:outline-none"
                 >
                   Download the sample voter CSV template
-                </button>{" "}
+                </a>{" "}
                 to check the required column mapping structure.
               </li>
               <li>
@@ -650,13 +636,16 @@ export default function CsvBatchPrinter({
                 applications.
               </li>
             </ol>
-            <button
-              onClick={downloadSampleCSV}
-              className="w-full mt-4 flex items-center justify-center gap-2 py-2 px-3 border border-slate-200 rounded-lg text-slate-700 text-[11px] font-semibold hover:bg-slate-50 transition-colors"
+            <a
+              href="/pa_voter_ballots_sample.csv"
+              download
+              className="w-full mt-4 flex items-center justify-center gap-2 py-2 px-3 border border-slate-200 rounded-lg text-slate-700 text-[11px] font-semibold hover:bg-slate-50 transition-colors block text-center"
             >
-              <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
-              Download Sample CSV Template
-            </button>
+              <FileSpreadsheet className="h-4 w-4 text-emerald-600 inline-block align-middle" />
+              <span className="ml-1.5 align-middle">
+                Download Sample CSV Template
+              </span>
+            </a>
           </div>
 
           {/* ADVANCED COORDINATES TUNER */}

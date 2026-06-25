@@ -139,7 +139,32 @@ const DEFAULT_COORDS_MAILIN: Record<string, FieldCoord> = {
   },
 };
 
-const REQUIRED_HEADERS = Object.keys(DEFAULT_COORDS_MAILIN);
+const REQUIRED_HEADERS = [
+  "Precinct",
+  "First_Name",
+  "Middle_Name",
+  "Last_Name",
+  "Suffix",
+  "Date_Of_Birth",
+  "House__",
+  "StreetNameComplete",
+  "Apt__",
+  "City",
+  "State",
+  "Zip_Code",
+  "MAddress_Line_1",
+  "MAddress_Line_2",
+  "MCity",
+  "MState",
+  "MZip_Code",
+  "PollingPlaceDescript",
+  "Ward",
+  "RNCfiles.PrimaryPhone",
+  "Voter_Status",
+  "RNCfiles.OfficialParty",
+  "RNCfiles.Age",
+  "VBM.AppType",
+];
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>("csv-batch");

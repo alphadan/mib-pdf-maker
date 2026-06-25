@@ -400,7 +400,7 @@ export default function NewResidentsForm({
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
+              <label className="text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
                 <Phone className="h-3 w-3 text-slate-400" />
                 Phone (Optional)
               </label>
@@ -415,7 +415,7 @@ export default function NewResidentsForm({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
+            <label className="text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1">
               <Mail className="h-3 w-3 text-slate-400" />
               Email (Optional)
             </label>
