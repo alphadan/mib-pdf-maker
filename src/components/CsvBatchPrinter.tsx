@@ -95,9 +95,9 @@ export default function CsvBatchPrinter({
           return;
         }
 
-        if (rawData.length > 25) {
+        if (rawData.length > 500) {
           setValidationError(
-            `Batch limit exceeded. You uploaded ${rawData.length} records, but the prototype is limited to a maximum of 25 records to protect memory and client performance.`,
+            `Batch limit exceeded. You uploaded ${rawData.length} records, but the suite is limited to a maximum of 500 records to protect memory and client performance.`,
           );
           return;
         }
@@ -235,6 +235,58 @@ export default function CsvBatchPrinter({
           }
         });
 
+        // Specialized Suffix Checkbox Logic
+        const suffixVal = String(record.suffix || "")
+          .trim()
+          .toUpperCase()
+          .replace(/\./g, ""); // Clean "JR." to "JR"
+        if (suffixVal === "JR") {
+          const field = coords.suffix_jr || { x: 412, y: 702 };
+          page.drawCircle({
+            x: field.x,
+            y: field.y,
+            size: 7,
+            borderColor: bluePenColor,
+            borderWidth: 1.5,
+          });
+        } else if (suffixVal === "SR") {
+          const field = coords.suffix_sr || { x: 435, y: 702 };
+          page.drawCircle({
+            x: field.x,
+            y: field.y,
+            size: 7,
+            borderColor: bluePenColor,
+            borderWidth: 1.5,
+          });
+        } else if (suffixVal === "II") {
+          const field = coords.suffix_ii || { x: 458, y: 702 };
+          page.drawCircle({
+            x: field.x,
+            y: field.y,
+            size: 7,
+            borderColor: bluePenColor,
+            borderWidth: 1.5,
+          });
+        } else if (suffixVal === "III") {
+          const field = coords.suffix_iii || { x: 481, y: 702 };
+          page.drawCircle({
+            x: field.x,
+            y: field.y,
+            size: 7,
+            borderColor: bluePenColor,
+            borderWidth: 1.5,
+          });
+        } else if (suffixVal === "IV") {
+          const field = coords.suffix_iv || { x: 504, y: 702 };
+          page.drawCircle({
+            x: field.x,
+            y: field.y,
+            size: 7,
+            borderColor: bluePenColor,
+            borderWidth: 1.5,
+          });
+        }
+
         // Specialized Checkbox Logic: Section 4 - Same as Above
         const mailingAddress = record.mailing_address
           ? String(record.mailing_address).trim()
@@ -244,44 +296,29 @@ export default function CsvBatchPrinter({
         if (!hasMailing) {
           // Check "Same as above" box in Section 4 (Coordinates X: 262, Y: 428)
           page.drawText("X", {
-            x: 262,
-            y: 428,
+            x: 190,
+            y: 468,
             size: 11,
             font: fontBold,
             color: bluePenColor,
           });
         }
 
-        // Section 7 - Annual Mail-in request
-        const isAnnualVal = String(record.annual_request || "")
-          .trim()
-          .toLowerCase();
-        const isAnnualChecked = [
-          "true",
-          "yes",
-          "y",
-          "1",
-          "checked",
-          "on",
-        ].includes(isAnnualVal);
-
-        if (isAnnualChecked) {
-          const annualField = coords.annual_request;
-          page.drawText("X", {
-            x: annualField.x,
-            y: annualField.y,
-            size: 11.5,
-            font: fontBold,
-            color: bluePenColor,
-          });
-        }
+        // Section 7 - Annual Mail-in request (Always True)
+        page.drawText("X", {
+          x: 190,
+          y: 208,
+          size: 11.5,
+          font: fontBold,
+          color: bluePenColor,
+        });
 
         // Copy modified template page into the final consolidated batch document
         const [copiedPage] = await batchPdf.copyPages(tempDoc, [0]);
         batchPdf.addPage(copiedPage);
 
         // A tiny artificial delay to give the browser thread space to render our progress state smoothly
-        await new Promise((resolve) => setTimeout(resolve, 80));
+        await new Promise((resolve) => setTimeout(resolve, 5));
       }
 
       setStatusText("Assembling multi-page ballot batch file...");

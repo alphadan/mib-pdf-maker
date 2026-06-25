@@ -22,7 +22,7 @@ Voter databases contain critical Personally Identifiable Information (PII) like 
 The application is structured as a **Dashboard Shell** with a collapsible sidebar for seamless tool switching:
 
 ### 1. 📁 CSV Batch Application Printer
-* **Drag-and-Drop Ingestion:** Ingest voter lists (up to 25 records per batch) with instant CSV schema checks.
+* **Drag-and-Drop Ingestion:** Ingest voter lists (up to 500 records per batch) with instant CSV schema checks.
 * **Consolidated Merging:** Merges multiple filled ballot request pages into a single, multi-page, print-ready PDF batch.
 * **Test Sheet:** Offers a "Test Sheet" button next to each voter record to print a single alignment preview before doing a major print run.
 * **Fine-Tuner:** Nudge field coordinates horizontally or vertically (in PDF points) directly from the browser window.
@@ -106,12 +106,15 @@ npm run build && npx firebase deploy --only hosting
 
 ## 📁 Required CSV Schema
 
-For the batch parser, your CSV spreadsheet columns must match these exact headers:
+For the batch parser, your CSV spreadsheet columns must match your exact 24 export headers:
 
 ```csv
-last_name,suffix,first_name,middle_name,birthdate,phone,email,address,suite_number,city,state,zip_code,municipality,county,precinct,ward,mailing_address,mailing_city,mailing_state,mailing_zip,annual_request
+Precinct,First_Name,Middle_Name,Last_Name,Suffix,Date_Of_Birth,House__,StreetNameComplete,Apt__,City,State,Zip_Code,MAddress_Line_1,MAddress_Line_2,MCity,MState,MZip_Code,PollingPlaceDescript,Ward,RNCfiles.PrimaryPhone,Voter_Status,RNCfiles.OfficialParty,RNCfiles.Age,VBM.AppType
 ```
 
-### Smart Fields:
-* **Section 4 (Mailing Address)**: If `mailing_address` is blank, the application automatically marks the "Same as above" checkbox on the Pennsylvania form.
-* **Section 7 (Annual Request)**: Setting `annual_request` to `true`, `yes`, or `1` automatically overlays an `X` on the annual mail-in ballot request box.
+### Smart Fields & Automated PDF Bridging:
+* **Residential Address Merge:** The app automatically merges **`House__`** (house number) and **`StreetNameComplete`** (street name) with a spacing character into the main residential `address` line on the PDF template.
+* **Mailing Address Merge:** Merges **`MAddress_Line_1`** and **`MAddress_Line_2`** programmatically into the alternative mailing address block.
+* **Section 4 "Same as above" Checkbox:** If the mailing columns are blank, the application automatically draws an **`"X"`** at coordinates `x: 190, y: 468` (Section 4's "Same as above" box) indicating no alternative mailing address is needed.
+* **Section 7 "Annual Ballot" Checkbox:** Every processed voter record in the batch automatically has an **`"X"`** drawn at **`x: 190, y: 208`** (Section 7), requesting annual mail-in ballot renewals.
+* **Section 1 "Suffix Checkbox" Bubbles (Hollow Vector Rings):** Instead of writing the suffix as raw text, the application sanitizes the **`Suffix`** column (e.g. converting `"Jr."` to `"JR"`). If it matches **JR**, **SR**, **II**, **III**, or **IV**, it renders an elegant, hollow vector circle outline (**radius: 7 points, stroke: 1.5 points**) centered perfectly inside the corresponding bubble in Section 1 using the independent coordinates defined in your tuner!

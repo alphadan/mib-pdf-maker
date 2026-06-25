@@ -23,7 +23,7 @@ To deliver the suite rapidly while maintaining a robust and extensible codebase,
 ### 🔴 High Priority (Completed)
 1. **Client-side PDF Text Rendering**: Implement `pdf-lib` to overlay custom text fields on official templates with X, Y precision.
 2. **Consolidated Batch Generation**: Merge multiple filled application pages into a single, multi-page, printable PDF document.
-3. **CSV Validation and Processing**: Rigid checking of column headers and a 25-record batch safety limit.
+3. **CSV Validation and Processing**: Rigid checking of column headers and a 500-record batch safety limit.
 4. **County Mailing Address Page**: Pre-fill the official envelope cover sheet (`PADOS_address_page.pdf`) based on selected county (Berks, Chester, Delaware, Montgomery) with standard window envelope positioning.
 5. **Interactive Sidebar Navigation Layout**: Beautiful dashboard with modular component tabs.
 
@@ -54,30 +54,33 @@ graph TD
 
 ## 4. Required CSV Schema & Database Mapping
 
-To ensure successful parsing, the CSV must include the following headers (even if values are empty). Coordinates are centered around standard Letter dimensions (`612 x 792 points`):
+To ensure successful parsing, the CSV must include the following 24 exact export headers:
+
+```csv
+Precinct,First_Name,Middle_Name,Last_Name,Suffix,Date_Of_Birth,House__,StreetNameComplete,Apt__,City,State,Zip_Code,MAddress_Line_1,MAddress_Line_2,MCity,MState,MZip_Code,PollingPlaceDescript,Ward,RNCfiles.PrimaryPhone,Voter_Status,RNCfiles.OfficialParty,RNCfiles.Age,VBM.AppType
+```
+
+Coordinates are configured around standard Letter dimensions (`612 x 792 points`):
 
 | Header Column Name | Description | PDF Target Section | Default PDF Coordinate (X, Y) in Points |
 | :--- | :--- | :--- | :--- |
-| `last_name` | Voter's last name | 1 (Last name) | (255, 698) |
-| `suffix` | Jr, Sr, II, III, etc. | 1 (Suffix box) | (425, 698) |
-| `first_name` | Voter's first name | 1 (First name) | (255, 681) |
-| `middle_name` | Middle name/initial | 1 (Middle name) | (425, 681) |
-| `birthdate` | Date of birth (MM/DD/YYYY)| 2 (Birth date) | (255, 648) |
-| `phone` | Phone number (optional)| 2 (Phone) | (370, 648) |
-| `email` | Email address (optional)| 2 (Email) | (255, 631) |
-| `address` | Street Address (no P.O. Box)| 3 (Address) | (255, 596) |
-| `suite_number` | Apt/Suite number | 3 (Apt. number) | (430, 596) |
-| `city` | Registered City/Town | 3 (City/Town) | (255, 579) |
-| `state` | Registered State (default PA)| 3 (State) | (355, 579) |
-| `zip_code` | 5-digit ZIP code | 3 (ZIP Code) | (390, 579) |
-| `municipality` | Local Municipality | 3 (Municipality) | (255, 558) |
-| `county` | County of Registration | 3 (County) | (370, 558) |
-| `precinct` | Voting precinct / district | 3 (Voting district) | (255, 534) |
-| `ward` | Voting ward | 3 (Ward) | (370, 534) |
-| `mailing_address` | Alt Mail Address (if different)| 4 (Address/P.O. Box)| (320, 468) |
-| `mailing_city` | Alt Mail City | 4 (City/Town) | (255, 451) |
-| `mailing_state` | Alt Mail State | 4 (State) | (370, 451) |
-| `mailing_zip` | Alt Mail ZIP | 4 (Zip) | (405, 451) |
-| `annual_request` | Set to `true` or `yes` to request | 7 (Annual mail-in) | (262, 273) [draws an 'X'] |
+| `Last_Name` | Voter's last name | 1 (Last name) | (242, 702) |
+| `First_Name` | Voter's first name | 1 (First name) | (242, 680) |
+| `Middle_Name` | Middle name/initial | 1 (Middle name) | (502, 680) |
+| `Suffix` (JR, SR, II, III, IV) | Suffix (hollow vector circle) | 1 (Suffix bubbles) | JR: (412, 702), SR: (435, 702), II: (458, 702), III: (481, 702), IV: (504, 702) |
+| `Date_Of_Birth` | Date of birth | 2 (Birth date) | (272, 646) |
+| `RNCfiles.PrimaryPhone` | Phone number | 2 (Phone) | (398, 646) |
+| `House__` + `StreetNameComplete` | Combined Street Address | 3 (Address) | (272, 592) |
+| `Apt__` | Apt/Suite number | 3 (Apt. number) | (540, 592) |
+| `City` | Registered City/Town | 3 (City/Town) | (242, 568) |
+| `State` | Registered State (default PA) | 3 (State) | (390, 568) |
+| `Zip_Code` | 5-digit ZIP code | 3 (ZIP Code) | (458, 568) |
+| `Precinct` | Voting precinct / district | 3 (Voting district) | (262, 518) |
+| `Ward` | Voting ward | 3 (Ward) | (480, 522) |
+| `MAddress_Line_1` + `MAddress_Line_2` | Combined Alt Mail Address | 4 (Address/P.O. Box)| (360, 468) |
+| `MCity` | Alt Mail City | 4 (City/Town) | (254, 444) |
+| `MState` | Alt Mail State | 4 (State) | (478, 444) |
+| `MZip_Code` | Alt Mail ZIP | 4 (Zip) | (530, 444) |
+| `VBM.AppType` | Forces Section 7 True | 7 (Annual mail-in) | (190, 208) [draws an 'X'] |
 
 *Note: Origin (0,0) is at the bottom-left of the standard Letter size page. Font size defaults to `12` with Inter Medium weight.*
