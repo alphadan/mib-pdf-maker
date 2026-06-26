@@ -59,7 +59,7 @@ export default function HelpGuide() {
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-5">
         <h3 className="font-bold text-slate-900 text-lg flex items-center gap-2">
           <FileText className="h-5 w-5 text-blue-600" />
-          Mailing Package Assembly Workflow
+          Mailing Package Assembly & Canvassing Workflow
         </h3>
 
         <div className="relative border-l-2 border-slate-100 pl-6 ml-3.5 space-y-6">
@@ -108,6 +108,23 @@ export default function HelpGuide() {
               signed application according to your envelope instructions, follow
               the instructions on the self-mailer page or place it in a standard
               mailing envelope with your printed county address page visible.
+            </p>
+          </div>
+
+          {/* Step 4 */}
+          <div className="relative">
+            <span className="absolute -left-10 top-0.5 bg-blue-600 text-white rounded-full h-7 w-7 flex items-center justify-center font-bold text-xs shadow-sm">
+              4
+            </span>
+            <h4 className="font-bold text-slate-900 text-sm">
+              Download Your Walking Checklist Separately
+            </h4>
+            <p className="text-slate-600 text-xs mt-1 leading-relaxed">
+              Use the <strong>Walking Checklist</strong> tab in your CSV batch
+              workspace to download or print the walking checklist on cheap{" "}
+              <strong>20lb copier paper</strong>. It is pre-sorted in the exact
+              same walking order as your applications stack so you can easily
+              cross-verify, tick off, and track voter signatures on the spot!
             </p>
           </div>
         </div>

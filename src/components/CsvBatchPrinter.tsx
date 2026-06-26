@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Papa from "papaparse";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
@@ -54,9 +54,22 @@ export default function CsvBatchPrinter({
   const [statusText, setStatusText] = useState<string>("");
   const [generatedBlobUrl, setGeneratedBlobUrl] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<"upload" | "preview">("upload");
+  const [activeTab, setActiveTab] = useState<"upload" | "preview" | "walklist">(
+    "upload",
+  );
+  const [isGeneratingWalkList, setIsGeneratingWalkList] =
+    useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Diagnostic State Logger
+  useEffect(() => {
+    console.log("=== CsvBatchPrinter State Update ===");
+    console.log("csvFile State:", csvFile ? csvFile.name : "null");
+    console.log("records count State:", records.length);
+    console.log("activeTab State:", activeTab);
+    console.log("validationError State:", validationError);
+  }, [csvFile, records, activeTab, validationError]);
 
   const processCSV = (file: File) => {
     setValidationError(null);
@@ -76,10 +89,18 @@ export default function CsvBatchPrinter({
       complete: (results) => {
         const headers = results.meta.fields || [];
 
+        console.log("=== CSV PARSING STARTED ===");
+        console.log("File Name:", file.name);
+        console.log("Parsed Headers from File:", headers);
+        console.log("Required Headers Checklist:", requiredHeaders);
+
         // Find missing headers (case sensitive checklist)
         const missing = requiredHeaders.filter((h) => !headers.includes(h));
 
+        console.log("Missing Headers Found:", missing);
+
         if (missing.length > 0) {
+          console.error("CSV Aborted: Missing required columns:", missing);
           setMissingHeaders(missing);
           setValidationError(
             `The CSV is missing ${missing.length} required field columns.`,
@@ -88,7 +109,10 @@ export default function CsvBatchPrinter({
         }
 
         const rawData = results.data;
+        console.log("Raw parsed records count:", rawData.length);
+
         if (rawData.length === 0) {
+          console.error("CSV Aborted: No records found in file.");
           setValidationError(
             "The CSV file does not contain any voter records.",
           );
@@ -96,6 +120,10 @@ export default function CsvBatchPrinter({
         }
 
         if (rawData.length > 500) {
+          console.error(
+            "CSV Aborted: Record count is over 500 cap:",
+            rawData.length,
+          );
           setValidationError(
             `Batch limit exceeded. You uploaded ${rawData.length} records, but the suite is limited to a maximum of 500 records to protect memory and client performance.`,
           );
@@ -111,6 +139,7 @@ export default function CsvBatchPrinter({
             middle_name: record.Middle_Name || "",
             birthdate: record.Date_Of_Birth || "",
             phone: record["RNCfiles.PrimaryPhone"] || "",
+            sex: record.Sex || "",
             suite_number: record.Apt__ || "",
             city: record.City || "",
             state: record.State || "",
@@ -134,8 +163,45 @@ export default function CsvBatchPrinter({
           };
         });
 
+        // Automatically sort records by Precinct -> Street Name -> House Number -> Apt Number
+        const sortedData = [...mappedData].sort((a, b) => {
+          const precinctA = String(a.Precinct || "")
+            .trim()
+            .toLowerCase();
+          const precinctB = String(b.Precinct || "")
+            .trim()
+            .toLowerCase();
+          if (precinctA !== precinctB)
+            return precinctA.localeCompare(precinctB);
+
+          const streetA = String(a.StreetNameComplete || "")
+            .trim()
+            .toLowerCase();
+          const streetB = String(b.StreetNameComplete || "")
+            .trim()
+            .toLowerCase();
+          if (streetA !== streetB) return streetA.localeCompare(streetB);
+
+          const houseANum = parseInt(a.House__) || 0;
+          const houseBNum = parseInt(b.House__) || 0;
+          if (houseANum !== houseBNum) return houseANum - houseBNum;
+
+          const aptA = String(a.Apt__ || "")
+            .trim()
+            .toLowerCase();
+          const aptB = String(b.Apt__ || "")
+            .trim()
+            .toLowerCase();
+          return aptA.localeCompare(aptB);
+        });
+
+        console.log("=== MAPPING AND SORTING COMPLETE ===");
+        console.log("Mapped Records:", mappedData.length);
+        console.log("Sorted Records:", sortedData.length);
+        console.log("Sample First Sorted Record:", sortedData[0]);
+
         setCsvFile(file);
-        setRecords(mappedData);
+        setRecords(sortedData);
         setActiveTab("preview");
       },
       error: (err) => {
@@ -166,6 +232,242 @@ export default function CsvBatchPrinter({
     setActiveTab("upload");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
+    }
+  };
+
+  const generateWalkListPDF = async () => {
+    if (records.length === 0) return;
+    setIsGeneratingWalkList(true);
+
+    try {
+      const walkListPdf = await PDFDocument.create();
+      walkListPdf.registerFontkit(fontkit);
+
+      const fontMedium = mediumFontBytes
+        ? await walkListPdf.embedFont(mediumFontBytes)
+        : await walkListPdf.embedFont(StandardFonts.Helvetica);
+      const fontBold = await walkListPdf.embedFont(StandardFonts.HelveticaBold);
+
+      const rgbColor = (r: number, g: number, b: number) =>
+        rgb(r / 255, g / 255, b / 255);
+      const primaryColor = rgbColor(20, 30, 55); // Rich charcoal navy
+      const lineDividerColor = rgbColor(230, 235, 245);
+      const zebraColor = rgbColor(250, 252, 255);
+
+      let page = walkListPdf.addPage([612, 792]);
+      let y = 675;
+      const rowHeight = 22;
+      const maxRowsPerPage = 27;
+      let rowCountOnPage = 0;
+      let currentPageNum = 1;
+
+      const drawHeader = (p: any, pageNum: number) => {
+        // Top banner header
+        p.drawText("PA BALLOT PRE-FILLER — WALKING CHECKLIST", {
+          x: 40,
+          y: 745,
+          size: 13,
+          font: fontBold,
+          color: primaryColor,
+        });
+
+        p.drawText(
+          `Compiled: ${new Date().toLocaleDateString()}  •  Batch Count: ${records.length} Voters  •  Page ${pageNum}`,
+          {
+            x: 40,
+            y: 730,
+            size: 9,
+            font: fontMedium,
+            color: rgbColor(110, 120, 140),
+          },
+        );
+
+        p.drawLine({
+          start: { x: 40, y: 720 },
+          end: { x: 572, y: 720 },
+          thickness: 1.5,
+          color: primaryColor,
+        });
+
+        // Table headers
+        p.drawText("Num", {
+          x: 45,
+          y: 702,
+          size: 9,
+          font: fontBold,
+          color: primaryColor,
+        });
+        p.drawText("Voter Name", {
+          x: 80,
+          y: 702,
+          size: 9,
+          font: fontBold,
+          color: primaryColor,
+        });
+        p.drawText("Registered Address (Walk Order)", {
+          x: 220,
+          y: 702,
+          size: 9,
+          font: fontBold,
+          color: primaryColor,
+        });
+        p.drawText("Age", {
+          x: 420,
+          y: 702,
+          size: 9,
+          font: fontBold,
+          color: primaryColor,
+        });
+        p.drawText("Sex", {
+          x: 450,
+          y: 702,
+          size: 9,
+          font: fontBold,
+          color: primaryColor,
+        });
+        p.drawText("Party", {
+          x: 485,
+          y: 702,
+          size: 9,
+          font: fontBold,
+          color: primaryColor,
+        });
+        p.drawText("Signed?", {
+          x: 530,
+          y: 702,
+          size: 9,
+          font: fontBold,
+          color: primaryColor,
+        });
+
+        p.drawLine({
+          start: { x: 40, y: 692 },
+          end: { x: 572, y: 692 },
+          thickness: 1,
+          color: rgbColor(180, 190, 205),
+        });
+      };
+
+      drawHeader(page, currentPageNum);
+
+      for (let i = 0; i < records.length; i++) {
+        if (rowCountOnPage >= maxRowsPerPage) {
+          page = walkListPdf.addPage([612, 792]);
+          y = 675;
+          rowCountOnPage = 0;
+          currentPageNum++;
+          drawHeader(page, currentPageNum);
+        }
+
+        const r = records[i];
+        const fullName =
+          `${r.First_Name || ""} ${r.Middle_Name ? r.Middle_Name + " " : ""}${r.Last_Name || ""} ${r.Suffix || ""}`
+            .trim()
+            .substring(0, 24);
+        const fullAddress =
+          `${r.House__ || ""} ${r.StreetNameComplete || ""} ${r.Apt__ ? "#" + r.Apt__ : ""}`
+            .trim()
+            .substring(0, 36);
+        const age = String(r["RNCfiles.Age"] || "N/A");
+        const sex = String(r.Sex || r.sex || "N/A").substring(0, 3);
+        const party = String(r["RNCfiles.OfficialParty"] || "N/A").substring(
+          0,
+          6,
+        );
+
+        // Zebra rows
+        if (i % 2 === 1) {
+          page.drawRectangle({
+            x: 40,
+            y: y - 4,
+            width: 532,
+            height: rowHeight,
+            color: zebraColor,
+          });
+        }
+
+        page.drawText(String(i + 1), {
+          x: 45,
+          y: y,
+          size: 8,
+          font: fontMedium,
+          color: rgbColor(100, 110, 130),
+        });
+        page.drawText(fullName, {
+          x: 80,
+          y: y,
+          size: 8,
+          font: fontBold,
+          color: rgbColor(15, 23, 42),
+        });
+        page.drawText(fullAddress, {
+          x: 220,
+          y: y,
+          size: 8,
+          font: fontMedium,
+          color: rgbColor(51, 65, 85),
+        });
+        page.drawText(age, {
+          x: 420,
+          y: y,
+          size: 8,
+          font: fontMedium,
+          color: rgbColor(51, 65, 85),
+        });
+        page.drawText(sex, {
+          x: 450,
+          y: y,
+          size: 8,
+          font: fontMedium,
+          color: rgbColor(51, 65, 85),
+        });
+        page.drawText(party, {
+          x: 485,
+          y: y,
+          size: 8,
+          font: fontMedium,
+          color: rgbColor(51, 65, 85),
+        });
+
+        // Draw checkbox square
+        page.drawRectangle({
+          x: 535,
+          y: y - 1,
+          width: 10,
+          height: 10,
+          borderColor: rgbColor(150, 160, 175),
+          borderWidth: 1,
+        });
+
+        // Bottom border line
+        page.drawLine({
+          start: { x: 40, y: y - 4 },
+          end: { x: 572, y: y - 4 },
+          thickness: 0.5,
+          color: lineDividerColor,
+        });
+
+        y -= rowHeight;
+        rowCountOnPage++;
+      }
+
+      const pdfBytes = await walkListPdf.save();
+      const blob = new Blob([pdfBytes as any], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+
+      const downloadLink = document.createElement("a");
+      downloadLink.href = url;
+      downloadLink.setAttribute(
+        "download",
+        `voter_walk_list_${new Date().toISOString().slice(0, 10)}.pdf`,
+      );
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    } catch (err: any) {
+      alert(`Error compiling walk list PDF: ${err.message}`);
+    } finally {
+      setIsGeneratingWalkList(false);
     }
   };
 
@@ -405,7 +707,17 @@ export default function CsvBatchPrinter({
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
-                Parsed Voters Preview ({records.length})
+                Voter Applications ({records.length})
+              </button>
+              <button
+                onClick={() => setActiveTab("walklist")}
+                className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+                  activeTab === "walklist"
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                🚶 Walking Checklist
               </button>
             </div>
           )}
@@ -556,6 +868,104 @@ export default function CsvBatchPrinter({
                           >
                             Download Single
                           </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: WALKING CHECKLIST */}
+          {activeTab === "walklist" && (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col space-y-4 p-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+                <div>
+                  <h4 className="font-bold text-slate-900 text-sm">
+                    Walking Checklist Directory ({records.length} Voters)
+                  </h4>
+                  <p className="text-[10px] text-slate-500 mt-0.5">
+                    Pre-sorted in walking sequence (Precinct ➔ Street ➔ House ➔
+                    Apt). Designed for copying on cheap paper.
+                  </p>
+                </div>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  <button
+                    onClick={generateWalkListPDF}
+                    disabled={isGeneratingWalkList}
+                    className="flex-grow sm:flex-none flex items-center justify-center gap-1.5 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-md disabled:opacity-50"
+                  >
+                    <Download className="h-4 w-4" />
+                    {isGeneratingWalkList
+                      ? "Compiling..."
+                      : "Download Checklist PDF"}
+                  </button>
+                  <button
+                    onClick={() => window.print()}
+                    className="flex-grow sm:flex-none flex items-center justify-center gap-1.5 py-2.5 px-4 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-all shadow-xs"
+                  >
+                    <Printer className="h-4 w-4" />
+                    Print Directly
+                  </button>
+                </div>
+              </div>
+
+              {/* WALKLIST CHECKLIST TABLE PREVIEW */}
+              <div className="overflow-x-auto max-h-[440px] border border-slate-150 rounded-xl">
+                <table className="w-full text-left text-[11px] text-slate-600 border-collapse">
+                  <thead className="bg-slate-50 text-[10px] text-slate-700 uppercase font-bold tracking-wider sticky top-0 border-b border-slate-150">
+                    <tr>
+                      <th className="px-4 py-3">Num</th>
+                      <th className="px-4 py-3">Voter Name</th>
+                      <th className="px-4 py-3">Registered Address</th>
+                      <th className="px-4 py-3">Age</th>
+                      <th className="px-4 py-3">Sex</th>
+                      <th className="px-4 py-3">Party</th>
+                      <th className="px-4 py-3 text-center">Checked?</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {records.map((r, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50/50">
+                        <td className="px-4 py-2 font-mono text-slate-400">
+                          {idx + 1}
+                        </td>
+                        <td className="px-4 py-2 font-bold text-slate-900">
+                          {r.first_name} {r.last_name} {r.suffix}
+                        </td>
+                        <td className="px-4 py-2 font-medium text-slate-700">
+                          {r.address}{" "}
+                          {r.suite_number ? `#${r.suite_number}` : ""}
+                        </td>
+                        <td className="px-4 py-2">
+                          {r["RNCfiles.Age"] || "N/A"}
+                        </td>
+                        <td className="px-4 py-2 font-medium">
+                          {r.sex || "N/A"}
+                        </td>
+                        <td className="px-4 py-2">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                              String(r["RNCfiles.OfficialParty"])
+                                .toLowerCase()
+                                .includes("dem")
+                                ? "bg-blue-50 border-blue-100 text-blue-700"
+                                : String(r["RNCfiles.OfficialParty"])
+                                      .toLowerCase()
+                                      .includes("rep")
+                                  ? "bg-red-50 border-red-100 text-red-700"
+                                  : "bg-slate-50 border-slate-100 text-slate-600"
+                            }`}
+                          >
+                            {r["RNCfiles.OfficialParty"] || "N/A"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 text-center">
+                          <input
+                            type="checkbox"
+                            className="rounded text-blue-600 focus:ring-blue-500 border-slate-300 h-4 w-4"
+                          />
                         </td>
                       </tr>
                     ))}

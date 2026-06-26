@@ -54,10 +54,10 @@ graph TD
 
 ## 4. Required CSV Schema & Database Mapping
 
-To ensure successful parsing, the CSV must include the following 24 exact export headers:
+To ensure successful parsing, the CSV must include the following 25 exact export headers:
 
 ```csv
-Precinct,First_Name,Middle_Name,Last_Name,Suffix,Date_Of_Birth,House__,StreetNameComplete,Apt__,City,State,Zip_Code,MAddress_Line_1,MAddress_Line_2,MCity,MState,MZip_Code,PollingPlaceDescript,Ward,RNCfiles.PrimaryPhone,Voter_Status,RNCfiles.OfficialParty,RNCfiles.Age,VBM.AppType
+Precinct,First_Name,Middle_Name,Last_Name,Suffix,Date_Of_Birth,House__,StreetNameComplete,Apt__,City,State,Zip_Code,MAddress_Line_1,MAddress_Line_2,MCity,MState,MZip_Code,PollingPlaceDescript,Ward,RNCfiles.PrimaryPhone,Voter_Status,RNCfiles.OfficialParty,RNCfiles.Age,Sex,VBM.AppType
 ```
 
 Coordinates are configured around standard Letter dimensions (`612 x 792 points`):
@@ -75,12 +75,14 @@ Coordinates are configured around standard Letter dimensions (`612 x 792 points`
 | `City` | Registered City/Town | 3 (City/Town) | (242, 568) |
 | `State` | Registered State (default PA) | 3 (State) | (390, 568) |
 | `Zip_Code` | 5-digit ZIP code | 3 (ZIP Code) | (458, 568) |
-| `Precinct` | Voting precinct / district | 3 (Voting district) | (262, 518) |
+| `Precinct` | Voting precinct (Sort Only) | Sort Key | Walk list sorted natively (No print overlay on list) |
 | `Ward` | Voting ward | 3 (Ward) | (480, 522) |
 | `MAddress_Line_1` + `MAddress_Line_2` | Combined Alt Mail Address | 4 (Address/P.O. Box)| (360, 468) |
 | `MCity` | Alt Mail City | 4 (City/Town) | (254, 444) |
 | `MState` | Alt Mail State | 4 (State) | (478, 444) |
 | `MZip_Code` | Alt Mail ZIP | 4 (Zip) | (530, 444) |
+| `RNCfiles.Age` | Voter's Age | Walk List Only | Output on separate Walk List copy sheet |
+| `Sex` | Voter's Gender | Walk List Only | Output on separate Walk List copy sheet after Age |
 | `VBM.AppType` | Forces Section 7 True | 7 (Annual mail-in) | (190, 208) [draws an 'X'] |
 
 *Note: Origin (0,0) is at the bottom-left of the standard Letter size page. Font size defaults to `12` with Inter Medium weight.*

@@ -3,7 +3,42 @@
 @tailwind utilities;
 
 @layer base {
-  body {
-    @apply bg-slate-50 text-slate-900 antialiased;
-  }
+    body {
+        @apply bg-slate-50 text-slate-900 antialiased;
+    }
+}
+
+@media print {
+    header,
+    aside,
+    footer,
+    button,
+    .no-print,
+    input[type="file"] {
+        display: none !important;
+    }
+    body,
+    main,
+    div {
+        background: white !important;
+        color: black !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+    th,
+    td {
+        border-bottom: 1px solid #cbd5e1 !important;
+        padding: 6px 8px !important;
+    }
+    tr {
+        page-break-inside: avoid !important;
+    }
 }

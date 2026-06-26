@@ -173,7 +173,6 @@ const REQUIRED_HEADERS = [
   "Middle_Name",
   "Last_Name",
   "Suffix",
-  "Date_Of_Birth",
   "House__",
   "StreetNameComplete",
   "Apt__",
@@ -191,6 +190,7 @@ const REQUIRED_HEADERS = [
   "Voter_Status",
   "RNCfiles.OfficialParty",
   "RNCfiles.Age",
+  "Sex",
   "VBM.AppType",
 ];
 

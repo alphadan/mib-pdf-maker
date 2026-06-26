@@ -106,10 +106,10 @@ npm run build && npx firebase deploy --only hosting
 
 ## 📁 Required CSV Schema
 
-For the batch parser, your CSV spreadsheet columns must match your exact 24 export headers:
+For the batch parser, your CSV spreadsheet columns must match your exact 25 export headers:
 
 ```csv
-Precinct,First_Name,Middle_Name,Last_Name,Suffix,Date_Of_Birth,House__,StreetNameComplete,Apt__,City,State,Zip_Code,MAddress_Line_1,MAddress_Line_2,MCity,MState,MZip_Code,PollingPlaceDescript,Ward,RNCfiles.PrimaryPhone,Voter_Status,RNCfiles.OfficialParty,RNCfiles.Age,VBM.AppType
+Precinct,First_Name,Middle_Name,Last_Name,Suffix,Date_Of_Birth,House__,StreetNameComplete,Apt__,City,State,Zip_Code,MAddress_Line_1,MAddress_Line_2,MCity,MState,MZip_Code,PollingPlaceDescript,Ward,RNCfiles.PrimaryPhone,Voter_Status,RNCfiles.OfficialParty,RNCfiles.Age,Sex,VBM.AppType
 ```
 
 ### Smart Fields & Automated PDF Bridging:
