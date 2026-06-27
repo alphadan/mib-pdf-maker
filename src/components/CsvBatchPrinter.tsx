@@ -23,6 +23,40 @@ interface FieldCoord {
   type: "text" | "checkbox";
 }
 
+const getPartyInitial = (partyVal: any): string => {
+  if (partyVal === null || partyVal === undefined) return "NF";
+  const cleanParty = String(partyVal).trim().toLowerCase();
+  if (
+    cleanParty === "" ||
+    cleanParty === "null" ||
+    cleanParty === "none" ||
+    cleanParty === "n/a" ||
+    cleanParty === "not found"
+  ) {
+    return "NF";
+  }
+  if (cleanParty.startsWith("dem") || cleanParty === "d") {
+    return "D";
+  }
+  if (cleanParty.startsWith("rep") || cleanParty === "r") {
+    return "R";
+  }
+  if (
+    cleanParty.startsWith("ind") ||
+    cleanParty === "i" ||
+    cleanParty.startsWith("una")
+  ) {
+    return "I";
+  }
+  if (cleanParty.startsWith("g")) {
+    return "G";
+  }
+  if (cleanParty.startsWith("l")) {
+    return "L";
+  }
+  return "I"; // Default / Other
+};
+
 interface CsvBatchPrinterProps {
   coords: Record<string, FieldCoord>;
   resetCoordinates: () => void;
@@ -79,6 +113,15 @@ export default function CsvBatchPrinter({
     if (!file.name.endsWith(".csv")) {
       setValidationError(
         "Invalid file format. Please upload a spreadsheet with a .csv extension.",
+      );
+      return;
+    }
+
+    // Security check: Limit file size to 5MB to prevent client-side Denial of Service (DoS)
+    const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      setValidationError(
+        `File size limit exceeded. To protect system performance, the maximum CSV size allowed is 5MB. Your file is ${(file.size / (1024 * 1024)).toFixed(1)}MB.`,
       );
       return;
     }
@@ -370,10 +413,7 @@ export default function CsvBatchPrinter({
             .substring(0, 36);
         const age = String(r["RNCfiles.Age"] || "N/A");
         const sex = String(r.Sex || r.sex || "N/A").substring(0, 3);
-        const party = String(r["RNCfiles.OfficialParty"] || "N/A").substring(
-          0,
-          6,
-        );
+        const party = getPartyInitial(r["RNCfiles.OfficialParty"]);
 
         // Zebra rows
         if (i % 2 === 1) {
@@ -538,12 +578,25 @@ export default function CsvBatchPrinter({
         });
 
         // Specialized Suffix Checkbox Logic
-        const suffixVal = String(record.suffix || "")
-          .trim()
-          .toUpperCase()
-          .replace(/\./g, ""); // Clean "JR." to "JR"
-        if (suffixVal === "JR") {
-          const field = coords.suffix_jr || { x: 412, y: 702 };
+        // Support string, array of strings, or comma/space separated values.
+        // The values printed with coordinates are JR, SR, III, and IV only.
+        const parseSuffixes = (val: any): string[] => {
+          if (!val) return [];
+          if (Array.isArray(val)) {
+            return val
+              .map((v) => String(v).trim().toUpperCase().replace(/\./g, ""))
+              .filter((v) => ["JR", "SR", "III", "IV"].includes(v));
+          }
+          return String(val)
+            .split(/[\s,]+/)
+            .map((v) => v.trim().toUpperCase().replace(/\./g, ""))
+            .filter((v) => ["JR", "SR", "III", "IV"].includes(v));
+        };
+
+        const activeSuffixes = parseSuffixes(record.suffix);
+
+        if (activeSuffixes.includes("JR")) {
+          const field = coords.suffix_jr || { x: 414, y: 706 };
           page.drawCircle({
             x: field.x,
             y: field.y,
@@ -551,8 +604,9 @@ export default function CsvBatchPrinter({
             borderColor: bluePenColor,
             borderWidth: 1.5,
           });
-        } else if (suffixVal === "SR") {
-          const field = coords.suffix_sr || { x: 435, y: 702 };
+        }
+        if (activeSuffixes.includes("SR")) {
+          const field = coords.suffix_sr || { x: 432, y: 706 };
           page.drawCircle({
             x: field.x,
             y: field.y,
@@ -560,8 +614,9 @@ export default function CsvBatchPrinter({
             borderColor: bluePenColor,
             borderWidth: 1.5,
           });
-        } else if (suffixVal === "II") {
-          const field = coords.suffix_ii || { x: 458, y: 702 };
+        }
+        if (activeSuffixes.includes("III")) {
+          const field = coords.suffix_iii || { x: 462, y: 706 };
           page.drawCircle({
             x: field.x,
             y: field.y,
@@ -569,17 +624,9 @@ export default function CsvBatchPrinter({
             borderColor: bluePenColor,
             borderWidth: 1.5,
           });
-        } else if (suffixVal === "III") {
-          const field = coords.suffix_iii || { x: 481, y: 702 };
-          page.drawCircle({
-            x: field.x,
-            y: field.y,
-            size: 7,
-            borderColor: bluePenColor,
-            borderWidth: 1.5,
-          });
-        } else if (suffixVal === "IV") {
-          const field = coords.suffix_iv || { x: 504, y: 702 };
+        }
+        if (activeSuffixes.includes("IV")) {
+          const field = coords.suffix_iv || { x: 480, y: 706 };
           page.drawCircle({
             x: field.x,
             y: field.y,
@@ -946,19 +993,18 @@ export default function CsvBatchPrinter({
                         </td>
                         <td className="px-4 py-2">
                           <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
-                              String(r["RNCfiles.OfficialParty"])
-                                .toLowerCase()
-                                .includes("dem")
+                            className={`px-2.5 py-0.5 rounded text-[10px] font-bold border ${
+                              getPartyInitial(r["RNCfiles.OfficialParty"]) ===
+                              "D"
                                 ? "bg-blue-50 border-blue-100 text-blue-700"
-                                : String(r["RNCfiles.OfficialParty"])
-                                      .toLowerCase()
-                                      .includes("rep")
+                                : getPartyInitial(
+                                      r["RNCfiles.OfficialParty"],
+                                    ) === "R"
                                   ? "bg-red-50 border-red-100 text-red-700"
                                   : "bg-slate-50 border-slate-100 text-slate-600"
                             }`}
                           >
-                            {r["RNCfiles.OfficialParty"] || "N/A"}
+                            {getPartyInitial(r["RNCfiles.OfficialParty"])}
                           </span>
                         </td>
                         <td className="px-4 py-2 text-center">
@@ -1086,7 +1132,7 @@ export default function CsvBatchPrinter({
             <a
               href="/pa_voter_ballots_sample.csv"
               download
-              className="w-full mt-4 flex items-center justify-center gap-2 py-2 px-3 border border-slate-200 rounded-lg text-slate-700 text-[11px] font-semibold hover:bg-slate-50 transition-colors block text-center"
+              className="w-full mt-4 flex items-center justify-center gap-2 py-2 px-3 border border-slate-200 rounded-lg text-slate-700 text-[11px] font-semibold hover:bg-slate-50 transition-colors text-center"
             >
               <FileSpreadsheet className="h-4 w-4 text-emerald-600 inline-block align-middle" />
               <span className="ml-1.5 align-middle">

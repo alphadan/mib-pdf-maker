@@ -44,7 +44,7 @@ export default function Layout({
     },
     {
       id: "help-guide",
-      label: "Printing Help Guide",
+      label: "Help Guide",
       icon: HelpCircle,
       description: "Scale rules & printer assembly",
     },
