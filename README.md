@@ -13,58 +13,43 @@ Voter databases contain critical Personally Identifiable Information (PII) like 
 1. **Local Parsing**: The uploaded CSV spreadsheet is parsed directly inside the browser using `papaparse`.
 2. **Local PDF Overlay**: Modifying and pre-filling the official PDF templates is done directly in the browser using `pdf-lib`.
 3. **No Remote Uploads**: **No voter data is ever sent over the network, saved on a database, or stored on a server.** Once you close the browser tab, all session data is permanently erased.
-4. **Offline Font Assets**: Embeds standard PDF specification fonts or loads custom CDN typography into secure browser cache.
+4. **Client-Side DoS Protection**: Safety limiters automatically reject files larger than **5MB** or containing more than **500 records** to protect browser memory performance.
+5. **No dangerous HTML evaluations**: Completely voids `dangerouslySetInnerHTML` to protect against HTML and Script injection (XSS).
 
 ---
 
 ## 🚀 Key Features & Workspace Modules
 
-The application is structured as a **Dashboard Shell** with a collapsible sidebar for seamless tool switching:
+The application features a modern **Top-Level Left Menu Sidebar** that organizes the primary voter actions (Application Purposes) as independent, fully featured workspaces. Each of the six core purposes contains its own **CSV Batch Ingestion Workspace** and a **📝 Single Manual Form Pre-Filler** tab.
 
-### 1. 📁 CSV Batch Application Printer
-* **Drag-and-Drop Ingestion:** Ingest voter lists (up to 500 records per batch) with instant CSV schema checks.
-* **Consolidated Merging:** Merges multiple filled ballot request pages into a single, multi-page, print-ready PDF batch.
-* **Test Sheet:** Offers a "Test Sheet" button next to each voter record to print a single alignment preview before doing a major print run.
-* **Fine-Tuner:** Nudge field coordinates horizontally or vertically (in PDF points) directly from the browser window.
+### 👤 1. Active Workspaces (Sidebar Categories)
+* **Mail-In Ballots:** Loads the 1-page **`PADOS_MailInApplication.pdf`** template. Automatically compatible with the County Duplex Self-Mailer.
+* **New Voter Registration:** Loads the 2-page **`PADOS_Registration_Application.pdf`** template. (Requires a mailing envelope).
+* **Change of Address:** Moving within Pennsylvania (e.g. college students). Dynamically requires/highlights **Section 8 (Previous Address)**. Loads the 2-page registration template.
+* **Change of Name:** Update name due to marriage or divorce. Dynamically requires/highlights **Section 8 (Previous Name)**. Loads the 2-page registration template.
+* **Change of Political Party:** Switch political party designation for Primaries. Loads the 2-page registration template.
+* **Federal / Military Move:** Pre-fills registrations for federal/military employees out-of-state. Loads the 2-page registration template.
 
-### ✉️ 2. County Mailing Address Page
+### 🔄 2. Core Capabilities within Each Workspace
+* **CSV Bulk Upload Center:** Drag-and-drop ingestion of voter spreadsheets with dynamic required header checking and schema validation.
+* **Consolidated Batch Compilation:** Merges hundreds of voter forms and prints them into a single, multi-page consolidated PDF download. Supports multi-page forms seamlessly!
+* **📝 Single Manual Form Pre-Filler:** A lightweight, custom-associated manual form allowing organizers to pre-fill individual voter registrations on the spot.
+* **Privacy Toggle Checklist:** A sidebar option to exclude sensitive values like **Date of Birth** and **Phone Number** from being pre-filled on printed PDFs by default to safeguard voter privacy.
+* **Advanced Coordinates Tuner:** Move field alignments horizontally or vertically in PDF points directly from the browser window. Tuners are isolated so adjustments on the Mail-In template never disrupt alignment on the Registration template.
+
+### ✉️ 3. County Mailing Address Page
 * **County-Level Routing:** Select from **Berks**, **Chester**, **Delaware**, or **Montgomery** county to see their official Board of Elections address.
 * **Address Page PDF Overlay:** Generates a pre-filled `PADOS_address_page.pdf` with the selected address positioned exactly to align with standard windowed envelopes.
-* **Envelope Window Tuner:** Move the recipient address lines horizontally or vertically to match your physical envelope window sizes.
-* **UX Reminder:** Reminds operators they only need to print **one** copy of this sheet per batch.
 
-### 👤 3. New Movers Pre-Filler
-* **Interactive Manual Form:** Type in individual registrations on the spot—perfect for real-time voter registration drives.
-* **Registration Template Integration:** Automatically writes coordinates and overlays fields on the official **`PADOS_Registration_Application.pdf`** template.
-
-### ❓ 4. Printing Help Guide
-* **Printer Scaling Guidelines:** Explicit instructions on printer scaling (e.g. setting Scale to **"Actual Size" / 100%** to avoid alignment shifts).
-* **Pre-flight Checklist:** Verify registrations, county destinations, and signature zones before shipping.
-
----
-
-## 🎨 Typography
-
-To guarantee pristine legibility, the application fetches and embeds **Inter Medium (weight 500)** into the generated PDFs. This provides a modern, crisp semi-bold layout. If a network delay occurs, it gracefully falls back to standard **Helvetica-Bold**.
-
----
-
-## 🛠️ Tech Stack & Packages
-
-* **Framework**: React 18 with TypeScript
-* **Build System**: Vite
-* **Styles**: Tailwind CSS
-* **Icons**: Lucide React
-* **CSV Engine**: PapaParse
-* **PDF Engine**: PDF-Lib (Client-side PDF compiler)
-* **Hosting**: Firebase Hosting (`mib-pdf-maker`)
+### ❓ 4. Help Guide
+* **Interactive Markdown Manual:** An operational markdown guide detailing printer scale calibration (lock scale to **"Actual Size" / 100%**), double-sided print directions, and canvassing assembly rules.
 
 ---
 
 ## 💻 Local Quickstart
 
 ### Prerequisites
-* Node.js v20+ or v22+ (highly recommended)
+* Node.js v20+ or v22+
 * npm v9+
 
 ### 1. Install Dependencies
@@ -85,19 +70,7 @@ npm run build
 ```
 This generates a production-optimized `dist/` directory ready for static hosting.
 
----
-
-## 🔥 Deploying to Firebase Hosting
-
-This project is pre-configured with `firebase.json` and `.firebaserc` pointing to the `mib-pdf-maker` project ID.
-
-### 1. Authenticate with Firebase CLI
-```bash
-npx firebase login
-```
-
-### 2. Deploy Production Build
-Build and deploy the application with a single command:
+### 4. Deploy to Firebase Hosting
 ```bash
 npm run build && npx firebase deploy --only hosting
 ```
@@ -106,15 +79,21 @@ npm run build && npx firebase deploy --only hosting
 
 ## 📁 Required CSV Schema
 
-For the batch parser, your CSV spreadsheet columns must match your exact 25 export headers:
+To protect data consistency, the CSV validation engine only checks for the **20 required columns** below. Optional columns (like `Precinct`, `Sex`, and `VBM.AppType`) can be omitted completely without failing the upload:
 
+### Mandatory Column Headers (Case-Sensitive):
 ```csv
-Precinct,First_Name,Middle_Name,Last_Name,Suffix,Date_Of_Birth,House__,StreetNameComplete,Apt__,City,State,Zip_Code,MAddress_Line_1,MAddress_Line_2,MCity,MState,MZip_Code,PollingPlaceDescript,Ward,RNCfiles.PrimaryPhone,Voter_Status,RNCfiles.OfficialParty,RNCfiles.Age,Sex,VBM.AppType
+First_Name, Middle_Name, Last_Name, Suffix, Date_Of_Birth, House__, StreetNameComplete, Apt__, City, State, Zip_Code, MAddress_Line_1, MAddress_Line_2, MCity, MState, MZip_Code, PollingPlaceDescript, Ward, RNCfiles.PrimaryPhone, Voter_Status
 ```
 
-### Smart Fields & Automated PDF Bridging:
-* **Residential Address Merge:** The app automatically merges **`House__`** (house number) and **`StreetNameComplete`** (street name) with a spacing character into the main residential `address` line on the PDF template.
-* **Mailing Address Merge:** Merges **`MAddress_Line_1`** and **`MAddress_Line_2`** programmatically into the alternative mailing address block.
-* **Section 4 "Same as above" Checkbox:** If the mailing columns are blank, the application automatically draws an **`"X"`** at coordinates `x: 190, y: 468` (Section 4's "Same as above" box) indicating no alternative mailing address is needed.
-* **Section 7 "Annual Ballot" Checkbox:** Every processed voter record in the batch automatically has an **`"X"`** drawn at **`x: 190, y: 208`** (Section 7), requesting annual mail-in ballot renewals.
-* **Section 1 "Suffix Checkbox" Bubbles (Hollow Vector Rings):** Instead of writing the suffix as raw text, the application sanitizes the **`Suffix`** column (e.g. converting `"Jr."` to `"JR"`). If it matches **JR**, **SR**, **II**, **III**, or **IV**, it renders an elegant, hollow vector circle outline (**radius: 7 points, stroke: 1.5 points**) centered perfectly inside the corresponding bubble in Section 1 using the independent coordinates defined in your tuner!
+### Automated PDF Formatting Rules:
+* **Resident State Prefill Bypass:** Since the Pennsylvania application is a state-specific form, the state code `'PA'` is pre-printed on the template. The system skips drawing the `state` text to avoid messy overlaps but retains it in your CSV/Interfaces.
+* **Walk List Party Initials Parser:** Prints clean party abbreviations for the Walk List PDF and HTML checklists:
+  * **Republican** $\rightarrow$ `R`
+  * **Democrat** $\rightarrow$ `D`
+  * **Independent / Unaffiliated** $\rightarrow$ `I`
+  * **Green** $\rightarrow$ `G`
+  * **Libertarian** $\rightarrow$ `L`
+  * **Null / Not Found** $\rightarrow$ `NF`
+* **Mailer "Same as above" Checkbox:** If alternative mailing columns are blank, the application automatically draws an **`"X"`** at coordinates `x: 190, y: 468` (for Mail-In) or `x: 262, y: 428` (for Registration).
+* **Section 1 "Suffix Checkbox" Bubbles:** Instead of writing the suffix as raw text, the application sanitizes the **`Suffix`** column (JR, SR, III, IV). It draws hollow vector circle outlines centered perfectly inside the corresponding template checkboxes. Any other suffix is allowed in your dataset but is excluded from printing on the checkbox coordinates.

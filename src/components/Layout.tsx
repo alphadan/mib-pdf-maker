@@ -1,11 +1,15 @@
 import { useState } from "react";
 import {
   Printer,
-  FileSpreadsheet,
   Mail,
-  UserPlus,
-  HelpCircle,
   ShieldCheck,
+  UserCheck,
+  User,
+  Home,
+  FileText,
+  Briefcase,
+  MapPin,
+  BookOpen,
 } from "lucide-react";
 
 interface LayoutProps {
@@ -25,28 +29,53 @@ export default function Layout({
 
   const navItems = [
     {
-      id: "csv-batch",
-      label: "CSV Batch Printer",
-      icon: FileSpreadsheet,
-      description: "Pre-fill registrations in batches",
+      id: "mail-in-voting",
+      label: "Mail-In Ballots",
+      icon: Mail,
+      description: "1-Page Self-Mailer Template",
+    },
+    {
+      id: "new-registration",
+      label: "New Voter Registration",
+      icon: UserCheck,
+      description: "2-Page Envelope Template",
+    },
+    {
+      id: "address-change",
+      label: "Change of Address",
+      icon: Home,
+      description: "College Students Dorm Address",
+    },
+    {
+      id: "name-change",
+      label: "Change of Name",
+      icon: User,
+      description: "Name/Marital Status update",
+    },
+    {
+      id: "party-change",
+      label: "Change of Political Party",
+      icon: FileText,
+      description: "Party choice change",
+    },
+    {
+      id: "federal-military",
+      label: "Federal / Military Move",
+      icon: Briefcase,
+      description: "Employees living out-of-state",
     },
     {
       id: "county-address",
       label: "County Self-Mailer Page",
-      icon: Mail,
-      description: "Print self-mailer routing sheet",
-    },
-    {
-      id: "new-resident",
-      label: "New Movers Pre-Filler",
-      icon: UserPlus,
-      description: "Form-fill for single residents",
+      icon: MapPin,
+      description:
+        "Create 1 routing sheet copy; print voter requests on the reverse side",
     },
     {
       id: "help-guide",
       label: "Help Guide",
-      icon: HelpCircle,
-      description: "Scale rules & printer assembly",
+      icon: BookOpen,
+      description: "Calibration & user manual",
     },
   ];
 

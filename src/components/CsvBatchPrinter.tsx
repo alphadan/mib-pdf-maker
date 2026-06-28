@@ -14,6 +14,7 @@ import {
   FileText,
   X,
 } from "lucide-react";
+import NewResidentsForm from "./NewResidentsForm";
 
 interface FieldCoord {
   name: string;
@@ -21,6 +22,7 @@ interface FieldCoord {
   x: number;
   y: number;
   type: "text" | "checkbox";
+  pageIndex?: number;
 }
 
 const getPartyInitial = (partyVal: any): string => {
@@ -68,6 +70,7 @@ interface CsvBatchPrinterProps {
   mediumFontBytes: ArrayBuffer | null;
   pdfTemplateLoaded: boolean | null;
   requiredHeaders: string[];
+  applicationReason: string;
 }
 
 export default function CsvBatchPrinter({
@@ -77,6 +80,7 @@ export default function CsvBatchPrinter({
   mediumFontBytes,
   pdfTemplateLoaded,
   requiredHeaders,
+  applicationReason,
 }: CsvBatchPrinterProps) {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [records, setRecords] = useState<any[]>([]);
@@ -88,13 +92,23 @@ export default function CsvBatchPrinter({
   const [statusText, setStatusText] = useState<string>("");
   const [generatedBlobUrl, setGeneratedBlobUrl] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<"upload" | "preview" | "walklist">(
-    "upload",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "upload" | "manual" | "preview" | "walklist"
+  >("upload");
   const [isGeneratingWalkList, setIsGeneratingWalkList] =
     useState<boolean>(false);
+  const [printDobAndPhone, setPrintDobAndPhone] = useState<boolean>(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Reset the file and records whenever the application reason changes
+  useEffect(() => {
+    setCsvFile(null);
+    setRecords([]);
+    setValidationError(null);
+    setMissingHeaders([]);
+    setActiveTab("upload");
+  }, [applicationReason]);
 
   // Diagnostic State Logger
   useEffect(() => {
@@ -253,6 +267,385 @@ export default function CsvBatchPrinter({
     });
   };
 
+  const downloadSampleCSV = () => {
+    let headers = [
+      "First_Name",
+      "Middle_Name",
+      "Last_Name",
+      "Suffix",
+      "Date_Of_Birth",
+      "House__",
+      "StreetNameComplete",
+      "Apt__",
+      "City",
+      "State",
+      "Zip_Code",
+      "MAddress_Line_1",
+      "MAddress_Line_2",
+      "MCity",
+      "MState",
+      "MZip_Code",
+      "PollingPlaceDescript",
+      "Ward",
+      "RNCfiles.PrimaryPhone",
+      "Voter_Status",
+    ];
+
+    // Add optional headers for specific purposes
+    const extraHeaders: string[] = [
+      "Precinct",
+      "Sex",
+      "RNCfiles.OfficialParty",
+      "RNCfiles.Age",
+    ];
+
+    let rows: string[][] = [];
+    let filename = "";
+
+    if (applicationReason === "mail-in-voting") {
+      filename = "mailin_ballots_sample.csv";
+      headers = [...headers, "VBM.AppType", ...extraHeaders];
+      rows = [
+        [
+          "John",
+          "Robert",
+          "Doe",
+          "JR",
+          "11/04/1984",
+          "123",
+          "Main St",
+          "",
+          "Norristown",
+          "PA",
+          "19401",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "Norristown Library",
+          "Ward 1",
+          "555-0199",
+          "Active",
+          "Annual",
+          "Precinct 4",
+          "M",
+          "REP",
+          "41",
+        ],
+        [
+          "Jane",
+          "Marie",
+          "Smith",
+          "",
+          "08/24/1990",
+          "456",
+          "Maple Ave",
+          "Apt 2B",
+          "West Chester",
+          "PA",
+          "19380",
+          "P.O. Box 789",
+          "",
+          "Harrisburg",
+          "PA",
+          "17101",
+          "West Chester Fire Station",
+          "Ward 3",
+          "555-0144",
+          "Active",
+          "Annual",
+          "Precinct 12",
+          "F",
+          "DEM",
+          "35",
+        ],
+      ];
+    } else if (applicationReason === "new-registration") {
+      filename = "new_voter_registration_sample.csv";
+      headers = [...headers, ...extraHeaders];
+      rows = [
+        [
+          "Alice",
+          "Elizabeth",
+          "Voter",
+          "",
+          "05/12/2004",
+          "789",
+          "Pine Rd",
+          "",
+          "Reading",
+          "PA",
+          "19601",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "Reading High School",
+          "Ward 2",
+          "555-0211",
+          "Active",
+          "Precinct 5",
+          "F",
+          "DEM",
+          "22",
+        ],
+        [
+          "Bob",
+          "James",
+          "Newcomer",
+          "",
+          "12/15/1995",
+          "101",
+          "Oak Ln",
+          "",
+          "Media",
+          "PA",
+          "19063",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "Media Borough Hall",
+          "Ward 1",
+          "555-0288",
+          "Active",
+          "Precinct 1",
+          "M",
+          "REP",
+          "30",
+        ],
+      ];
+    } else if (applicationReason === "address-change") {
+      filename = "change_of_address_sample.csv";
+      headers = [
+        ...headers,
+        "Prev_Address",
+        "Prev_City",
+        "Prev_State",
+        "Prev_Zip",
+        "Prev_County",
+        ...extraHeaders,
+      ];
+      rows = [
+        [
+          "David",
+          "Michael",
+          "Student",
+          "",
+          "09/18/2005",
+          "200",
+          "University Pkwy",
+          "Dorm 304B",
+          "West Chester",
+          "PA",
+          "19383",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "Hollinger Fieldhouse",
+          "Ward 2",
+          "555-0322",
+          "Active",
+          "50 Main St",
+          "Allentown",
+          "PA",
+          "18101",
+          "Lehigh",
+          "Precinct 8",
+          "M",
+          "DEM",
+          "20",
+        ],
+        [
+          "Emma",
+          "Grace",
+          "Mover",
+          "",
+          "02/10/1992",
+          "456",
+          "New Spruce St",
+          "",
+          "Norristown",
+          "PA",
+          "19401",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "Norristown High School",
+          "Ward 4",
+          "555-0344",
+          "Active",
+          "789 Old Elm St",
+          "Reading",
+          "PA",
+          "19601",
+          "Berks",
+          "Precinct 10",
+          "F",
+          "REP",
+          "34",
+        ],
+      ];
+    } else if (applicationReason === "name-change") {
+      filename = "change_of_name_sample.csv";
+      headers = [...headers, "Prev_Name", ...extraHeaders];
+      rows = [
+        [
+          "Sarah",
+          "Lynn",
+          "Miller",
+          "",
+          "06/30/1988",
+          "789",
+          "Valley Rd",
+          "",
+          "West Chester",
+          "PA",
+          "19382",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "West Chester Community Center",
+          "Ward 1",
+          "555-0455",
+          "Active",
+          "Sarah Lynn Smith",
+          "Precinct 3",
+          "F",
+          "DEM",
+          "37",
+        ],
+      ];
+    } else if (applicationReason === "party-change") {
+      filename = "change_of_party_sample.csv";
+      headers = [...headers, ...extraHeaders];
+      rows = [
+        [
+          "Kevin",
+          "Andrew",
+          "Voter",
+          "",
+          "10/05/1978",
+          "321",
+          "Birch Blvd",
+          "",
+          "Reading",
+          "PA",
+          "19605",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "Reading Recreation Center",
+          "Ward 5",
+          "555-0566",
+          "Active",
+          "Precinct 9",
+          "M",
+          "REP",
+          "47",
+        ],
+      ];
+    } else if (applicationReason === "federal-military") {
+      filename = "federal_military_sample.csv";
+      headers = [...headers, ...extraHeaders];
+      rows = [
+        [
+          "Mark",
+          "Steven",
+          "Patriot",
+          "",
+          "07/04/1980",
+          "1776",
+          "Liberty Way",
+          "",
+          "Norristown",
+          "PA",
+          "19403",
+          "APO AP 96326",
+          "",
+          "",
+          "",
+          "",
+          "Norristown Library",
+          "Ward 1",
+          "555-0776",
+          "Active",
+          "Precinct 2",
+          "M",
+          "REP",
+          "45",
+        ],
+      ];
+    } else {
+      filename = "voter_database_sample.csv";
+      headers = [...headers, ...extraHeaders];
+      rows = [
+        [
+          "John",
+          "Robert",
+          "Doe",
+          "JR",
+          "11/04/1984",
+          "123",
+          "Main St",
+          "",
+          "Norristown",
+          "PA",
+          "19401",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "Norristown Library",
+          "Ward 1",
+          "555-0199",
+          "Active",
+          "Precinct 4",
+          "M",
+          "REP",
+          "41",
+        ],
+      ];
+    }
+
+    // Build CSV text string escaping double quotes if necessary
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) =>
+        row
+          .map((cell) => {
+            const cellStr = String(cell);
+            return cellStr.includes(",") || cellStr.includes('"')
+              ? `"${cellStr.replace(/"/g, '""')}"`
+              : cellStr;
+          })
+          .join(","),
+      ),
+    ].join("\n");
+
+    // Create Blob and download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
   };
@@ -408,9 +801,9 @@ export default function CsvBatchPrinter({
             .trim()
             .substring(0, 24);
         const fullAddress =
-          `${r.House__ || ""} ${r.StreetNameComplete || ""} ${r.Apt__ ? "#" + r.Apt__ : ""}`
+          `${r.House__ || ""} ${r.StreetNameComplete || ""} ${r.Apt__ ? "#" + r.Apt__ : ""}, ${r.City || ""}`
             .trim()
-            .substring(0, 36);
+            .substring(0, 40);
         const age = String(r["RNCfiles.Age"] || "N/A");
         const sex = String(r.Sex || r.sex || "N/A").substring(0, 3);
         const party = getPartyInitial(r["RNCfiles.OfficialParty"]);
@@ -525,10 +918,15 @@ export default function CsvBatchPrinter({
     setValidationError(null);
 
     try {
-      const response = await fetch("/PADOS_MailInApplication.pdf");
+      const isMailIn = applicationReason === "mail-in-voting";
+      const templatePath = isMailIn
+        ? "/PADOS_MailInApplication.pdf"
+        : "/PADOS_Registration_Application.pdf";
+
+      const response = await fetch(templatePath);
       if (!response.ok)
         throw new Error(
-          "Official Pennsylvania Mail-In PDF template could not be loaded.",
+          `Official Pennsylvania ${isMailIn ? "Mail-In" : "Registration"} PDF template could not be loaded.`,
         );
       const templateBytes = await response.arrayBuffer();
 
@@ -549,7 +947,6 @@ export default function CsvBatchPrinter({
         // Load a temporary instance of the template, modify it, and copy it
         const tempDoc = await PDFDocument.load(templateBytes);
         tempDoc.registerFontkit(fontkit);
-        const page = tempDoc.getPages()[0];
 
         // Embed the custom Inter-Medium font if loaded; fallback to standard Helvetica-Bold
         const fontMedium = mediumFontBytes
@@ -563,11 +960,24 @@ export default function CsvBatchPrinter({
 
         // Map every text field in the record
         Object.keys(coords).forEach((key) => {
+          // Skip printing the state on the PDF template since 'PA' is already prefilled/printed.
+          if (key === "state") return;
+
+          // Skip printing Date of Birth and Phone unless the toggle is enabled
+          if (!printDobAndPhone && (key === "birthdate" || key === "phone")) {
+            return;
+          }
+
           const field = coords[key];
           const val = record[key];
 
+          // Fetch the page based on pageIndex (default to 0 for first page)
+          const pageIndex = field.pageIndex ?? 0;
+          const targetPage =
+            tempDoc.getPages()[pageIndex] || tempDoc.getPages()[0];
+
           if (field.type === "text" && val && String(val).trim() !== "") {
-            page.drawText(String(val).trim(), {
+            targetPage.drawText(String(val).trim(), {
               x: field.x,
               y: field.y,
               size: 12,
@@ -576,6 +986,9 @@ export default function CsvBatchPrinter({
             });
           }
         });
+
+        // First page object for checkbox overlays
+        const firstPage = tempDoc.getPages()[0];
 
         // Specialized Suffix Checkbox Logic
         // Support string, array of strings, or comma/space separated values.
@@ -597,7 +1010,7 @@ export default function CsvBatchPrinter({
 
         if (activeSuffixes.includes("JR")) {
           const field = coords.suffix_jr || { x: 414, y: 706 };
-          page.drawCircle({
+          firstPage.drawCircle({
             x: field.x,
             y: field.y,
             size: 7,
@@ -607,7 +1020,7 @@ export default function CsvBatchPrinter({
         }
         if (activeSuffixes.includes("SR")) {
           const field = coords.suffix_sr || { x: 432, y: 706 };
-          page.drawCircle({
+          firstPage.drawCircle({
             x: field.x,
             y: field.y,
             size: 7,
@@ -617,7 +1030,7 @@ export default function CsvBatchPrinter({
         }
         if (activeSuffixes.includes("III")) {
           const field = coords.suffix_iii || { x: 462, y: 706 };
-          page.drawCircle({
+          firstPage.drawCircle({
             x: field.x,
             y: field.y,
             size: 7,
@@ -627,7 +1040,7 @@ export default function CsvBatchPrinter({
         }
         if (activeSuffixes.includes("IV")) {
           const field = coords.suffix_iv || { x: 480, y: 706 };
-          page.drawCircle({
+          firstPage.drawCircle({
             x: field.x,
             y: field.y,
             size: 7,
@@ -643,30 +1056,39 @@ export default function CsvBatchPrinter({
         const hasMailing = mailingAddress.length > 0;
 
         if (!hasMailing) {
-          // Check "Same as above" box in Section 4 (Coordinates X: 262, Y: 428)
-          page.drawText("X", {
-            x: 190,
-            y: 468,
+          // Check "Same as above" box in Section 4 (Coordinates: X: 190, Y: 468 for Mail-In; X: 262, Y: 428 for Registration)
+          const sameAsAboveX = isMailIn ? 190 : 262;
+          const sameAsAboveY = isMailIn ? 468 : 428;
+          firstPage.drawText("X", {
+            x: sameAsAboveX,
+            y: sameAsAboveY,
             size: 11,
             font: fontBold,
             color: bluePenColor,
           });
         }
 
-        // Section 7 - Annual Mail-in request (Always True)
-        page.drawText("X", {
-          x: 190,
-          y: 208,
-          size: 11.5,
-          font: fontBold,
-          color: bluePenColor,
+        // Section 7 - Annual Mail-in request (Always True, only for Mail-In!)
+        if (isMailIn) {
+          const annualField = coords.annual_request || { x: 190, y: 208 };
+          firstPage.drawText("X", {
+            x: annualField.x,
+            y: annualField.y,
+            size: 11.5,
+            font: fontBold,
+            color: bluePenColor,
+          });
+        }
+
+        // Copy all modified template pages (natively supporting multi-page formats)
+        const pageCount = tempDoc.getPageCount();
+        const pagesToCopy = Array.from({ length: pageCount }, (_, idx) => idx);
+        const copiedPages = await batchPdf.copyPages(tempDoc, pagesToCopy);
+        copiedPages.forEach((copiedPage) => {
+          batchPdf.addPage(copiedPage);
         });
 
-        // Copy modified template page into the final consolidated batch document
-        const [copiedPage] = await batchPdf.copyPages(tempDoc, [0]);
-        batchPdf.addPage(copiedPage);
-
-        // A tiny artificial delay to give the browser thread space to render our progress state smoothly
+        // A tiny delay to let the UI thread breathe
         await new Promise((resolve) => setTimeout(resolve, 5));
       }
 
@@ -734,39 +1156,62 @@ export default function CsvBatchPrinter({
         {/* LEFT COLUMN: Upload Control */}
         <div className="lg:col-span-2 space-y-6">
           {/* TABS SELECTOR */}
-          {csvFile && (
-            <div className="flex space-x-1 bg-slate-200/60 p-1 rounded-xl w-fit">
-              <button
-                onClick={() => setActiveTab("upload")}
-                className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
-                  activeTab === "upload"
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Upload Center
-              </button>
-              <button
-                onClick={() => setActiveTab("preview")}
-                className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
-                  activeTab === "preview"
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Voter Applications ({records.length})
-              </button>
-              <button
-                onClick={() => setActiveTab("walklist")}
-                className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
-                  activeTab === "walklist"
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                🚶 Walking Checklist
-              </button>
-            </div>
+          <div className="flex space-x-1 bg-slate-200/60 p-1 rounded-xl w-fit">
+            <button
+              onClick={() => setActiveTab("upload")}
+              className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+                activeTab === "upload"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              Upload Center
+            </button>
+            <button
+              onClick={() => setActiveTab("manual")}
+              className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+                activeTab === "manual"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              📝 Single Manual Entry
+            </button>
+            {records.length > 0 && (
+              <>
+                <button
+                  onClick={() => setActiveTab("preview")}
+                  className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+                    activeTab === "preview"
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  Voter Applications ({records.length})
+                </button>
+                <button
+                  onClick={() => setActiveTab("walklist")}
+                  className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+                    activeTab === "walklist"
+                      ? "bg-white text-slate-900 shadow-sm"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  🚶 Walking Checklist
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* TAB 1.5: MANUAL FORM FILLER */}
+          {activeTab === "manual" && (
+            <NewResidentsForm
+              mediumFontBytes={mediumFontBytes}
+              applicationReason={applicationReason}
+              coords={coords}
+              handleCoordinateChange={handleCoordinateChange}
+              resetCoordinates={resetCoordinates}
+            />
           )}
 
           {/* TAB 1: UPLOAD BOX */}
@@ -983,7 +1428,7 @@ export default function CsvBatchPrinter({
                         </td>
                         <td className="px-4 py-2 font-medium text-slate-700">
                           {r.address}{" "}
-                          {r.suite_number ? `#${r.suite_number}` : ""}
+                          {r.suite_number ? `#${r.suite_number}` : ""}, {r.city}
                         </td>
                         <td className="px-4 py-2">
                           {r["RNCfiles.Age"] || "N/A"}
@@ -1087,6 +1532,31 @@ export default function CsvBatchPrinter({
                   Application template and download a single multi-page file.
                 </p>
               </div>
+
+              {/* PRIVACY TOGGLE OPTIONS */}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 text-left space-y-2.5">
+                <div className="flex items-start gap-2.5">
+                  <input
+                    id="toggle-dob-phone"
+                    type="checkbox"
+                    checked={printDobAndPhone}
+                    onChange={(e) => setPrintDobAndPhone(e.target.checked)}
+                    className="mt-0.5 rounded text-blue-600 focus:ring-blue-500 border-slate-300 h-4 w-4 cursor-pointer"
+                  />
+                  <label
+                    htmlFor="toggle-dob-phone"
+                    className="text-[11px] font-bold text-slate-700 cursor-pointer select-none leading-tight"
+                  >
+                    Print Date of Birth & Phone Number
+                    <span className="block text-[10px] text-slate-400 font-normal mt-1 leading-relaxed">
+                      By default, DOB and Phone are excluded to protect voter
+                      privacy. Toggle to include these pre-filled values on the
+                      PDF.
+                    </span>
+                  </label>
+                </div>
+              </div>
+
               <button
                 onClick={() => generatePDF(null)}
                 className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-colors"
@@ -1105,13 +1575,13 @@ export default function CsvBatchPrinter({
             </h3>
             <ol className="space-y-3.5 text-xs text-slate-600 list-decimal pl-4.5">
               <li>
-                <a
-                  href="/pa_voter_ballots_sample.csv"
-                  download
-                  className="text-blue-600 hover:underline font-semibold text-left focus:outline-none"
+                <button
+                  type="button"
+                  onClick={downloadSampleCSV}
+                  className="text-blue-600 hover:underline font-semibold text-left focus:outline-none inline"
                 >
                   Download the sample voter CSV template
-                </a>{" "}
+                </button>{" "}
                 to check the required column mapping structure.
               </li>
               <li>
@@ -1129,16 +1599,16 @@ export default function CsvBatchPrinter({
                 applications.
               </li>
             </ol>
-            <a
-              href="/pa_voter_ballots_sample.csv"
-              download
-              className="w-full mt-4 flex items-center justify-center gap-2 py-2 px-3 border border-slate-200 rounded-lg text-slate-700 text-[11px] font-semibold hover:bg-slate-50 transition-colors text-center"
+            <button
+              type="button"
+              onClick={downloadSampleCSV}
+              className="w-full mt-4 flex items-center justify-center gap-2 py-2 px-3 border border-slate-200 rounded-lg text-slate-700 text-[11px] font-semibold hover:bg-slate-50 transition-colors text-center shadow-xs"
             >
               <FileSpreadsheet className="h-4 w-4 text-emerald-600 inline-block align-middle" />
               <span className="ml-1.5 align-middle">
                 Download Sample CSV Template
               </span>
-            </a>
+            </button>
           </div>
 
           {/* ADVANCED COORDINATES TUNER */}
@@ -1187,7 +1657,12 @@ export default function CsvBatchPrinter({
                       >
                         <div className="flex justify-between font-bold text-slate-800">
                           <span>{item.label}</span>
-                          <span className="font-mono text-slate-400 text-[10px]">
+                          <span className="font-mono text-slate-400 text-[10px] flex items-center gap-1.5">
+                            {item.pageIndex !== undefined && (
+                              <span className="bg-slate-100 text-slate-600 px-1 rounded text-[8px]">
+                                PG {item.pageIndex + 1}
+                              </span>
+                            )}
                             {key}
                           </span>
                         </div>

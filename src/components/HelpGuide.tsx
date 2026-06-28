@@ -83,7 +83,7 @@ Official ballot applications are designed to be printed **double-sided** so that
 1. **County Self-Mailer Setup**:
    Go to the **County Self-Mailer Page** tab, choose the correct county, and export the address sheet.
 2. **Batch voter compilation**:
-   Upload your CSV to the **CSV Batch Application Printer** and download the compiled PDF containing all your voters.
+   Upload your CSV to the selected Purpose workspace tab (e.g., Mail-In Ballots, New Voter Registration, etc.) and download the compiled PDF containing all your voters.
 3. **Print Duplex Packets**:
    Load the self-mailer page as the front page and the compiled voter-details document as the back side. Print them.
 4. **Voter Canvassing & Execution**:
@@ -401,8 +401,12 @@ Official ballot applications are designed to be printed **double-sided** so that
                 <strong>Batch Voter Compilation:</strong>
                 <p className="text-slate-600 mt-1">
                   Upload your voter CSV spreadsheet to the{" "}
-                  <em>CSV Batch Application Printer</em>. The system will
-                  auto-verify the mandatory headers in your web browser.
+                  <em>
+                    selected Purpose workspace tab (e.g., Mail-In Ballots, New
+                    Voter Registration, etc.)
+                  </em>
+                  . The system will auto-verify the mandatory headers in your
+                  web browser.
                 </p>
               </li>
               <li>
