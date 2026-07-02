@@ -28,21 +28,22 @@ export default function WalkingChecklist({
             )}
           </h4>
           <p className="text-[10px] text-slate-500 mt-0.5">
-            Pre-sorted in walking sequence (Precinct ➔ Street ➔ House ➔ Apt). Designed for copying on cheap paper.
+            Pre-sorted in walking sequence (Precinct ➔ Street ➔ House ➔ Apt).
+            Designed for copying on cheap paper.
           </p>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex flex-col gap-2 w-full sm:w-56">
           <button
             onClick={generateWalkListPDF}
             disabled={isGeneratingWalkList}
-            className="flex-grow sm:flex-none flex items-center justify-center gap-1.5 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-md disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-md disabled:opacity-50"
           >
             <Download className="h-4 w-4" />
             {isGeneratingWalkList ? "Compiling..." : "Download Checklist PDF"}
           </button>
           <button
             onClick={() => window.print()}
-            className="flex-grow sm:flex-none flex items-center justify-center gap-1.5 py-2.5 px-4 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-all shadow-xs"
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-xl text-xs font-bold transition-all shadow-xs"
           >
             <Printer className="h-4 w-4" />
             Print Directly
@@ -68,12 +69,15 @@ export default function WalkingChecklist({
           <tbody className="divide-y divide-slate-100 select-text">
             {records.map((r, idx) => (
               <tr key={idx} className="hover:bg-slate-50/50">
-                <td className="px-4 py-2 font-mono text-slate-400">{idx + 1}</td>
+                <td className="px-4 py-2 font-mono text-slate-400">
+                  {idx + 1}
+                </td>
                 <td className="px-4 py-2 font-bold text-slate-900">
                   {r.first_name} {r.last_name} {r.suffix}
                 </td>
                 <td className="px-4 py-2 font-medium text-slate-700">
-                  {r.address} {r.suite_number ? `#${r.suite_number}` : ""}, {r.city}
+                  {r.address} {r.suite_number ? `#${r.suite_number}` : ""},{" "}
+                  {r.city}
                 </td>
                 <td className="px-4 py-2">{r["RNCfiles.Age"] || "N/A"}</td>
                 <td className="px-4 py-2 font-medium">{r.sex || "N/A"}</td>
@@ -91,9 +95,7 @@ export default function WalkingChecklist({
                   </span>
                 </td>
                 <td className="px-4 py-2">
-                  <span
-                    className="px-2.5 py-0.5 rounded text-[10px] font-bold border bg-slate-50 border-slate-100 text-slate-600"
-                  >
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-bold border bg-slate-50 border-slate-100 text-slate-600">
                     {r.household_party || "N/A"}
                   </span>
                 </td>

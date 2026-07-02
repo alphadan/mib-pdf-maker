@@ -150,6 +150,18 @@ export default function NewResidentsForm({
         const field = coords[key];
         let val = formData[key as keyof typeof formData];
 
+        // Concatenate previous address fields for single consolidated line on Section 9
+        if (key === "prev_full_address") {
+          const parts = [
+            formData.prev_address,
+            formData.prev_city,
+            formData.prev_state,
+            formData.prev_zip,
+            formData.prev_county ? formData.prev_county + " County" : "",
+          ].filter((p) => p && String(p).trim() !== "");
+          val = parts.join(", ");
+        }
+
         // Skip mailing address overrides if "same as above" is selected
         if (useSameMailing && key.startsWith("mailing_")) {
           return;

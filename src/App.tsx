@@ -315,16 +315,16 @@ const DEFAULT_COORDS_REGISTER: Record<string, FieldCoord> = {
   precinct: {
     name: "precinct",
     label: "Voting District / Precinct",
-    x: 310,
-    y: 446,
+    x: 320,
+    y: 448,
     type: "text",
     pageIndex: 0,
   },
   ward: {
     name: "ward",
     label: "Ward",
-    x: 390,
-    y: 446,
+    x: 408,
+    y: 448,
     type: "text",
     pageIndex: 0,
   },
@@ -378,50 +378,18 @@ const DEFAULT_COORDS_REGISTER: Record<string, FieldCoord> = {
     type: "text",
     pageIndex: 0,
   },
-  prev_address: {
-    name: "prev_address",
-    label: "Sec 9: Previous Address",
-    x: 248,
-    y: 268,
-    type: "text",
-    pageIndex: 0,
-  },
-  prev_city: {
-    name: "prev_city",
-    label: "Sec 9: Previous City",
-    x: 242,
-    y: 224,
-    type: "text",
-    pageIndex: 0,
-  },
-  prev_state: {
-    name: "prev_state",
-    label: "Sec 9: Previous State",
-    x: 390,
-    y: 224,
-    type: "text",
-    pageIndex: 0,
-  },
-  prev_zip: {
-    name: "prev_zip",
-    label: "Sec 9: Previous ZIP",
-    x: 432,
-    y: 224,
-    type: "text",
-    pageIndex: 0,
-  },
-  prev_county: {
-    name: "prev_county",
-    label: "Sec 9: Previous County",
-    x: 524,
-    y: 224,
+  prev_full_address: {
+    name: "prev_full_address",
+    label: "Sec 9: Previous Full Address",
+    x: 300,
+    y: 246,
     type: "text",
     pageIndex: 0,
   },
   prev_voter_no: {
     name: "prev_voter_no",
     label: "Sec 9: Previous Voter No",
-    x: 248,
+    x: 288,
     y: 225,
     type: "text",
     pageIndex: 0,
@@ -766,7 +734,19 @@ export default function App() {
     const saved = localStorage.getItem(storageKey);
     if (saved) {
       try {
-        setCoords(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+
+        // Dynamic Cache Invalidator: Upgrade browser cache to Page 1 Section 9 alignments automatically!
+        if (!isMailIn && (!parsed.prev_full_address || parsed.prev_address)) {
+          console.log(
+            "Stale local coordinates cache detected. Upgrading to Page 1 Section 9 defaults...",
+          );
+          localStorage.setItem(storageKey, JSON.stringify(defaultCoords));
+          setCoords(defaultCoords);
+          return;
+        }
+
+        setCoords(parsed);
         return;
       } catch (e) {}
     }
