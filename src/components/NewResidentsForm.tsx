@@ -85,7 +85,7 @@ export default function NewResidentsForm({
     prev_name: "",
     prev_address: "",
     prev_city: "",
-    prev_state: "PA",
+    prev_state: "",
     prev_zip: "",
     prev_county: "",
   });
@@ -136,6 +136,17 @@ export default function NewResidentsForm({
         // Skip drawing the state on the PDF, as 'PA' is already prefilled/printed
         if (key === "state") return;
 
+        // Skip qualifications, gender, party choice, and requires_assistance (handled customly)
+        if (
+          key === "is_citizen" ||
+          key === "is_at_least_18" ||
+          key === "gender" ||
+          key === "party_choice" ||
+          key === "requires_assistance"
+        ) {
+          return;
+        }
+
         const field = coords[key];
         let val = formData[key as keyof typeof formData];
 
@@ -144,13 +155,13 @@ export default function NewResidentsForm({
           return;
         }
 
-        // Custom formatting for conditional text selections
-        if (
-          key === "is_citizen" ||
-          key === "is_at_least_18" ||
-          key === "requires_assistance"
-        ) {
-          val = val ? String(val).toUpperCase() : "";
+        // Limit assistance_reason to 25 characters and skip if requires_assistance is not yes
+        if (key === "assistance_reason") {
+          const assistVal = String(formData.requires_assistance || "")
+            .trim()
+            .toLowerCase();
+          if (assistVal !== "yes") return;
+          val = String(val).substring(0, 25);
         }
 
         // Fetch target page dynamically (support multi-page PDFs)
@@ -175,8 +186,8 @@ export default function NewResidentsForm({
       // 5. Section 4 Checkbox (Same as above)
       if (useSameMailing) {
         // Determine the "Same as above" coordinates
-        const sameAsAboveX = isMailIn ? 190 : 262;
-        const sameAsAboveY = isMailIn ? 468 : 428;
+        const sameAsAboveX = isMailIn ? 190 : 189;
+        const sameAsAboveY = isMailIn ? 468 : 423;
         firstPage.drawText("X", {
           x: sameAsAboveX,
           y: sameAsAboveY,
@@ -238,6 +249,181 @@ export default function NewResidentsForm({
           size: 7,
           borderColor: bluePenColor,
           borderWidth: 1.5,
+        });
+      }
+
+      // 8. Eligibility Checkboxes (Section 2 - Registration Only)
+      if (!isMailIn) {
+        if (formData.is_citizen === "yes") {
+          const field = coords.is_citizen_yes || { x: 304, y: 652 };
+          firstPage.drawText("X", {
+            x: field.x,
+            y: field.y,
+            size: 11,
+            font: fontBold,
+            color: bluePenColor,
+          });
+        } else if (formData.is_citizen === "no") {
+          const field = coords.is_citizen_no || { x: 340, y: 652 };
+          firstPage.drawText("X", {
+            x: field.x,
+            y: field.y,
+            size: 11,
+            font: fontBold,
+            color: bluePenColor,
+          });
+        }
+
+        if (formData.is_at_least_18 === "yes") {
+          const field = coords.is_at_least_18_yes || { x: 304, y: 632 };
+          firstPage.drawText("X", {
+            x: field.x,
+            y: field.y,
+            size: 11,
+            font: fontBold,
+            color: bluePenColor,
+          });
+        } else if (formData.is_at_least_18 === "no") {
+          const field = coords.is_at_least_18_no || { x: 340, y: 632 };
+          firstPage.drawText("X", {
+            x: field.x,
+            y: field.y,
+            size: 11,
+            font: fontBold,
+            color: bluePenColor,
+          });
+        }
+      }
+
+      // 9. Reason Checkboxes (Section 3 - Registration Only)
+      if (!isMailIn) {
+        let reasonX = 0;
+        let reasonY = 604.6;
+        if (applicationReason === "new-registration") {
+          reasonX = 189;
+        } else if (applicationReason === "mail-in-voting") {
+          reasonX = 288;
+        } else if (applicationReason === "name-change") {
+          reasonX = 375;
+        } else if (applicationReason === "address-change") {
+          reasonX = 477;
+        } else if (applicationReason === "party-change") {
+          reasonX = 189;
+          reasonY = 593.1;
+        } else if (applicationReason === "federal-military") {
+          reasonX = 288;
+          reasonY = 593.1;
+        }
+
+        if (reasonX > 0) {
+          firstPage.drawText("X", {
+            x: reasonX,
+            y: reasonY,
+            size: 11,
+            font: fontBold,
+            color: bluePenColor,
+          });
+        }
+      }
+
+      // 10. Gender Checkboxes (Section 4 - Registration Only)
+      if (!isMailIn && formData.gender) {
+        const genderVal = String(formData.gender).trim().toUpperCase();
+        let genderX = 0;
+        if (genderVal.includes("FEMALE") || genderVal === "F") {
+          genderX = 233;
+        } else if (genderVal.includes("MALE") || genderVal === "M") {
+          genderX = 303;
+        } else if (
+          genderVal.includes("NON-BINARY") ||
+          genderVal.includes("OTHER") ||
+          genderVal === "X"
+        ) {
+          genderX = 366;
+        }
+
+        if (genderX > 0) {
+          firstPage.drawText("X", {
+            x: genderX,
+            y: 529,
+            size: 11,
+            font: fontBold,
+            color: bluePenColor,
+          });
+        }
+      }
+
+      // 11. Political Party Checkboxes (Section 8 - Registration Only)
+      if (!isMailIn && formData.party_choice) {
+        const partyVal = String(formData.party_choice).trim().toUpperCase();
+        let partyX = 0;
+        let partyY = 310;
+
+        if (
+          partyVal.includes("DEMOCRATIC") ||
+          partyVal === "D" ||
+          partyVal === "DEM"
+        ) {
+          partyX = 188;
+        } else if (
+          partyVal.includes("REPUBLICAN") ||
+          partyVal === "R" ||
+          partyVal === "REP"
+        ) {
+          partyX = 263;
+        } else if (partyVal.includes("GREEN") || partyVal === "G") {
+          partyX = 337;
+        } else if (partyVal.includes("LIBERTARIAN") || partyVal === "L") {
+          partyX = 391;
+        } else if (partyVal.includes("OTHER") || partyVal === "OTHER") {
+          partyX = 188;
+          partyY = 290;
+        }
+
+        if (partyX > 0) {
+          firstPage.drawText("X", {
+            x: partyX,
+            y: partyY,
+            size: 11,
+            font: fontBold,
+            color: bluePenColor,
+          });
+        }
+      }
+
+      // 12. Section 12 Mail-In Ballot Check (Default Option 2 - Registration Only)
+      if (!isMailIn) {
+        const secondPage = pdfDoc.getPages()[1];
+        if (secondPage) {
+          secondPage.drawText("X", {
+            x: 189,
+            y: 643.5,
+            size: 11,
+            font: fontBold,
+            color: bluePenColor,
+          });
+        }
+      }
+
+      // 13. Section 1.5 ID Checkbox (I do not have either, Registration Only)
+      if (!isMailIn && formData.id_type === "none") {
+        firstPage.drawText("X", {
+          x: 189,
+          y: 338,
+          size: 11,
+          font: fontBold,
+          color: bluePenColor,
+        });
+      }
+
+      // 14. Section 10 Voting Assistance YES Checkbox (Page 1, Registration Only)
+      if (!isMailIn && formData.requires_assistance === "yes") {
+        firstPage.drawText("X", {
+          x: 188,
+          y: 159,
+          size: 11,
+          font: fontBold,
+          color: bluePenColor,
         });
       }
 
