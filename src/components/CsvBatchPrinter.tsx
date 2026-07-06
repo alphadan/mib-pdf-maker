@@ -941,11 +941,11 @@ export default function CsvBatchPrinter({
             .trim()
             .substring(0, 24);
 
-        // Full Address: House, Street, Apt, Municipality (resolved!)
+        // Full Address: House, Street, Apt, City, State Zip
         const fullAddress =
-          `${r.House__ || ""} ${r.StreetNameComplete || ""} ${r.Apt__ ? "#" + r.Apt__ : ""}, ${resolveMunicipality(r.Municipality)}`
+          `${r.House__ || ""} ${r.StreetNameComplete || ""} ${r.Apt__ ? "#" + r.Apt__ : ""}, ${r.City || ""}, ${r.State || ""} ${r.Zip_Code || ""}`
             .trim()
-            .substring(0, 52); // Landscape allows longer addresses!
+            .substring(0, 60); // Landscape allows longer addresses!
 
         const age = String(r["RNCfiles.Age"] || "N/A");
         const sex = String(r.Sex || r.sex || "N/A").substring(0, 1); // Compact sex symbol

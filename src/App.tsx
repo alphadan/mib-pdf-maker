@@ -3,6 +3,7 @@ import Layout from "./components/Layout";
 import CsvBatchPrinter from "./components/CsvBatchPrinter";
 import AddressPrinter from "./components/AddressPrinter";
 import HelpGuide from "./components/HelpGuide";
+import NewMoversBatch from "./components/NewMoversBatch";
 
 interface FieldCoord {
   name: string;
@@ -639,13 +640,6 @@ export const CSV_SCHEMA: Record<string, CsvFieldSchema> = {
     isNullable: true,
     description: "Mailing ZIP code",
   },
-  PollingPlaceDescript: {
-    headerName: "PollingPlaceDescript",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "Description of the polling place",
-  },
   Ward: {
     headerName: "Ward",
     isRequired: true,
@@ -701,6 +695,20 @@ export const CSV_SCHEMA: Record<string, CsvFieldSchema> = {
     type: "string",
     isNullable: true,
     description: "Type of mail-in/absentee application",
+  },
+  County: {
+    headerName: "County",
+    isRequired: false,
+    type: "string",
+    isNullable: true,
+    description: "Numeric county code of voter",
+  },
+  Municipality: {
+    headerName: "Municipality",
+    isRequired: false,
+    type: "string",
+    isNullable: true,
+    description: "Numeric municipality code of voter",
   },
 };
 
@@ -850,6 +858,13 @@ export default function App() {
 
       {activeTab === "county-address" && (
         <AddressPrinter mediumFontBytes={mediumFontBytes} />
+      )}
+
+      {activeTab === "new-movers" && (
+        <NewMoversBatch
+          mediumFontBytes={mediumFontBytes}
+          requiredHeaders={REQUIRED_HEADERS}
+        />
       )}
 
       {activeTab === "help-guide" && <HelpGuide />}

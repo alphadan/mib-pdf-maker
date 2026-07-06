@@ -1,14 +1,23 @@
-// Official 1-to-67 alphabetical County FIPS/Index mapping for the Commonwealth of Pennsylvania
+// Official 1-to-68 alphabetical County mapping for the Commonwealth of Pennsylvania
 export const PA_COUNTIES_DICT: Record<string, string> = {
-  "01": "Adams", "1": "Adams",
-  "02": "Allegheny", "2": "Allegheny",
-  "03": "Armstrong", "3": "Armstrong",
-  "04": "Beaver", "4": "Beaver",
-  "05": "Bedford", "5": "Bedford",
-  "06": "Berks", "6": "Berks",
-  "07": "Blair", "7": "Blair",
-  "08": "Bradford", "8": "Bradford",
-  "09": "Bucks", "9": "Bucks",
+  "1": "Chester",
+  "01": "Chester",
+  "2": "Allegheny",
+  "02": "Allegheny",
+  "3": "Armstrong",
+  "03": "Armstrong",
+  "4": "Beaver",
+  "04": "Beaver",
+  "5": "Bedford",
+  "05": "Bedford",
+  "6": "Berks",
+  "06": "Berks",
+  "7": "Blair",
+  "07": "Blair",
+  "8": "Bradford",
+  "08": "Bradford",
+  "9": "Bucks",
+  "09": "Bucks",
   "10": "Butler",
   "11": "Cambria",
   "12": "Cameron",
@@ -66,12 +75,23 @@ export const PA_COUNTIES_DICT: Record<string, string> = {
   "64": "Wayne",
   "65": "Westmoreland",
   "66": "Wyoming",
-  "67": "York"
+  "67": "York",
+  "68": "NA",
 };
 
 // Common municipality lookup map
 export const PA_MUNICIPALITIES_DICT: Record<string, string> = {
   // Chester County Municipalities
+  //
+  "1": "ATGLEN",
+  "01": "ATGLEN",
+  "21": "EAST FALLOWFIELD TWP",
+  "22": "WEST FALLOWFIELD TWP",
+  "26": "HIGHLAND TWP",
+  "48": "PARKESBURG",
+  "55": "SADSBURY TWP",
+  "56": "WEST SADSBURY TWP",
+
   "0920": "West Chester Borough",
   "920": "West Chester Borough",
   "0482": "Atglen Borough",
@@ -116,5 +136,9 @@ export const resolveMunicipality = (val: any): string => {
   if (/^\d{3}$/.test(cleanVal)) {
     paddedVal = "0" + cleanVal;
   }
-  return PA_MUNICIPALITIES_DICT[paddedVal] || PA_MUNICIPALITIES_DICT[cleanVal] || cleanVal;
+  return (
+    PA_MUNICIPALITIES_DICT[paddedVal] ||
+    PA_MUNICIPALITIES_DICT[cleanVal] ||
+    cleanVal
+  );
 };

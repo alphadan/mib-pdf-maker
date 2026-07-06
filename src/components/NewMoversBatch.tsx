@@ -1,0 +1,942 @@
+import React, { useState, useRef, useEffect } from "react";
+import Papa from "papaparse";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
+import { resolveCounty, resolveMunicipality } from "../utils/paVoterLookups";
+import {
+  FileSpreadsheet,
+  CheckCircle2,
+  Download,
+  RefreshCw,
+  Printer,
+  Settings,
+  FileText,
+  X,
+  AlertTriangle,
+} from "lucide-react";
+
+interface FieldCoord {
+  name: string;
+  label: string;
+  x: number;
+  y: number;
+  type: "text" | "checkbox";
+  pageIndex?: number;
+}
+
+const DEFAULT_COORDS_REGISTER: Record<string, FieldCoord> = {
+  last_name: {
+    name: "last_name",
+    label: "Last Name",
+    x: 248,
+    y: 698,
+    type: "text",
+    pageIndex: 0,
+  },
+  suffix_jr: {
+    name: "suffix_jr",
+    label: "Suffix Jr Box",
+    x: 414,
+    y: 702,
+    type: "checkbox",
+    pageIndex: 0,
+  },
+  suffix_sr: {
+    name: "suffix_sr",
+    label: "Suffix Sr Box",
+    x: 432,
+    y: 702,
+    type: "checkbox",
+    pageIndex: 0,
+  },
+  suffix_ii: {
+    name: "suffix_ii",
+    label: "Suffix II Box",
+    x: 448,
+    y: 702,
+    type: "checkbox",
+    pageIndex: 0,
+  },
+  suffix_iii: {
+    name: "suffix_iii",
+    label: "Suffix III Box",
+    x: 466,
+    y: 702,
+    type: "checkbox",
+    pageIndex: 0,
+  },
+  suffix_iv: {
+    name: "suffix_iv",
+    label: "Suffix IV Box",
+    x: 484,
+    y: 702,
+    type: "checkbox",
+    pageIndex: 0,
+  },
+  first_name: {
+    name: "first_name",
+    label: "First Name",
+    x: 248,
+    y: 676,
+    type: "text",
+    pageIndex: 0,
+  },
+  middle_name: {
+    name: "middle_name",
+    label: "Middle Name / Initial",
+    x: 504,
+    y: 676,
+    type: "text",
+    pageIndex: 0,
+  },
+  birthdate: {
+    name: "birthdate",
+    label: "Birthdate (MM/DD/YYYY)",
+    x: 272,
+    y: 568,
+    type: "text",
+    pageIndex: 0,
+  },
+  phone: {
+    name: "phone",
+    label: "Phone (Optional)",
+    x: 230,
+    y: 550,
+    type: "text",
+    pageIndex: 0,
+  },
+  email: {
+    name: "email",
+    label: "Email (Optional)",
+    x: 400,
+    y: 550,
+    type: "text",
+    pageIndex: 0,
+  },
+  address: {
+    name: "address",
+    label: "Address (not P.O. Box)",
+    x: 280,
+    y: 504,
+    type: "text",
+    pageIndex: 0,
+  },
+  suite_number: {
+    name: "suite_number",
+    label: "Apt/Suite Number",
+    x: 544,
+    y: 504,
+    type: "text",
+    pageIndex: 0,
+  },
+  city: {
+    name: "city",
+    label: "City/Town",
+    x: 242,
+    y: 486,
+    type: "text",
+    pageIndex: 0,
+  },
+  state: {
+    name: "state",
+    label: "State",
+    x: 390,
+    y: 486,
+    type: "text",
+    pageIndex: 0,
+  },
+  zip_code: {
+    name: "zip_code",
+    label: "ZIP Code",
+    x: 432,
+    y: 486,
+    type: "text",
+    pageIndex: 0,
+  },
+  municipality: {
+    name: "municipality",
+    label: "Municipality",
+    x: 244,
+    y: 558,
+    type: "text",
+    pageIndex: 0,
+  },
+  county: {
+    name: "county",
+    label: "County",
+    x: 524,
+    y: 486,
+    type: "text",
+    pageIndex: 0,
+  },
+  precinct: {
+    name: "precinct",
+    label: "Voting District / Precinct",
+    x: 320,
+    y: 448,
+    type: "text",
+    pageIndex: 0,
+  },
+  ward: {
+    name: "ward",
+    label: "Ward",
+    x: 408,
+    y: 448,
+    type: "text",
+    pageIndex: 0,
+  },
+  mailing_address: {
+    name: "mailing_address",
+    label: "Mailing Address",
+    x: 356,
+    y: 422,
+    type: "text",
+    pageIndex: 0,
+  },
+  mailing_city: {
+    name: "mailing_city",
+    label: "Mailing City",
+    x: 234,
+    y: 402,
+    type: "text",
+    pageIndex: 0,
+  },
+  mailing_state: {
+    name: "mailing_state",
+    label: "Mailing State",
+    x: 480,
+    y: 402,
+    type: "text",
+    pageIndex: 0,
+  },
+  mailing_zip: {
+    name: "mailing_zip",
+    label: "Mailing ZIP",
+    x: 528,
+    y: 402,
+    type: "text",
+    pageIndex: 0,
+  },
+};
+
+interface NewMoversBatchProps {
+  mediumFontBytes: ArrayBuffer | null;
+  requiredHeaders: string[];
+}
+
+export default function NewMoversBatch({
+  mediumFontBytes,
+  requiredHeaders,
+}: NewMoversBatchProps) {
+  const [coords, setCoords] = useState<Record<string, FieldCoord>>(() => {
+    const saved = localStorage.getItem("mib-newmovers-coords");
+    return saved ? JSON.parse(saved) : DEFAULT_COORDS_REGISTER;
+  });
+
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const [records, setRecords] = useState<any[]>([]);
+  const [missingHeaders, setMissingHeaders] = useState<string[]>([]);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [showCoordsEditor, setShowCoordsEditor] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [progress, setProgress] = useState<number>(0);
+  const [statusText, setStatusText] = useState<string>("");
+  const [generatedBlobUrl, setGeneratedBlobUrl] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<"upload" | "preview">("upload");
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-save coordinate nudges
+  useEffect(() => {
+    localStorage.setItem("mib-newmovers-coords", JSON.stringify(coords));
+  }, [coords]);
+
+  const handleCoordinateChange = (
+    fieldName: string,
+    axis: "x" | "y",
+    val: number,
+  ) => {
+    setCoords((prev) => ({
+      ...prev,
+      [fieldName]: {
+        ...prev[fieldName],
+        [axis]: Math.max(0, val),
+      },
+    }));
+  };
+
+  const resetCoordinates = () => {
+    setCoords(DEFAULT_COORDS_REGISTER);
+    localStorage.removeItem("mib-newmovers-coords");
+  };
+
+  const processCSV = (file: File) => {
+    setValidationError(null);
+    setMissingHeaders([]);
+    setRecords([]);
+
+    if (!file.name.endsWith(".csv")) {
+      setValidationError(
+        "Invalid file format. Please upload a spreadsheet with a .csv extension.",
+      );
+      return;
+    }
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const headers = results.meta.fields || [];
+        const missing = requiredHeaders.filter((h) => !headers.includes(h));
+
+        if (missing.length > 0) {
+          setMissingHeaders(missing);
+          setValidationError(
+            `The CSV is missing ${missing.length} required field columns.`,
+          );
+          return;
+        }
+
+        const rawData = results.data;
+        if (rawData.length === 0) {
+          setValidationError(
+            "The CSV file does not contain any voter records.",
+          );
+          return;
+        }
+
+        if (rawData.length > 500) {
+          setValidationError(
+            `Batch limit exceeded. You uploaded ${rawData.length} records, but the suite is limited to a maximum of 500 records to protect memory and client performance.`,
+          );
+          return;
+        }
+
+        const mappedData = rawData.map((record: any) => {
+          return {
+            ...record,
+            last_name: record.Last_Name || "",
+            suffix: record.Suffix || "",
+            first_name: record.First_Name || "",
+            middle_name: record.Middle_Name || "",
+            birthdate: record.Date_Of_Birth || "",
+            phone: record["RNCfiles.PrimaryPhone"] || "",
+            sex: record.Sex || "",
+            suite_number: record.Apt__ || "",
+            city: record.City || "",
+            state: record.State || "",
+            zip_code: record.Zip_Code || "",
+            precinct: record.Precinct || "",
+            ward: record.Ward || "",
+            mailing_city: record.MCity || "",
+            mailing_state: record.MState || "",
+            mailing_zip: record.MZip_Code || "",
+            county: resolveCounty(record.County),
+            municipality: resolveMunicipality(record.Municipality),
+
+            // Construct virtual compound fields for overlaying
+            address:
+              `${record.House__ || ""} ${record.StreetNameComplete || ""}`.trim(),
+            mailing_address:
+              `${record.MAddress_Line_1 || ""} ${record.MAddress_Line_2 || ""}`.trim(),
+          };
+        });
+
+        // Automatically sort records by Precinct -> Street Name -> House Number -> Apt Number
+        const sortedData = [...mappedData].sort((a, b) => {
+          const precinctA = String(a.Precinct || "")
+            .trim()
+            .toLowerCase();
+          const precinctB = String(b.Precinct || "")
+            .trim()
+            .toLowerCase();
+          if (precinctA !== precinctB)
+            return precinctA.localeCompare(precinctB);
+
+          const streetA = String(a.StreetNameComplete || "")
+            .trim()
+            .toLowerCase();
+          const streetB = String(b.StreetNameComplete || "")
+            .trim()
+            .toLowerCase();
+          if (streetA !== streetB) return streetA.localeCompare(streetB);
+
+          const houseANum = parseInt(a.House__) || 0;
+          const houseBNum = parseInt(b.House__) || 0;
+          if (houseANum !== houseBNum) return houseANum - houseBNum;
+
+          const aptA = String(a.Apt__ || "")
+            .trim()
+            .toLowerCase();
+          const aptB = String(b.Apt__ || "")
+            .trim()
+            .toLowerCase();
+          return aptA.localeCompare(aptB);
+        });
+
+        setCsvFile(file);
+        setRecords(sortedData);
+        setActiveTab("preview");
+      },
+      error: (err) => {
+        setValidationError(`Failed to parse CSV: ${err.message}`);
+      },
+    });
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      processCSV(files[0]);
+    }
+  };
+
+  const clearFile = () => {
+    setCsvFile(null);
+    setRecords([]);
+    setValidationError(null);
+    setMissingHeaders([]);
+    setGeneratedBlobUrl(null);
+    setIsSuccess(false);
+    setActiveTab("upload");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const generatePDF = async (singleRecordIndex: number | null = null) => {
+    setIsProcessing(true);
+    setProgress(5);
+    setStatusText(
+      "Downloading registration PDF template into browser memory...",
+    );
+    setValidationError(null);
+
+    try {
+      const response = await fetch("/PADOS_Registration_Application.pdf");
+      if (!response.ok)
+        throw new Error(
+          "Official Pennsylvania Registration PDF template could not be loaded.",
+        );
+      const templateBytes = await response.arrayBuffer();
+
+      const batchPdf = await PDFDocument.create();
+      const recordsToProcess =
+        singleRecordIndex !== null ? [records[singleRecordIndex]] : records;
+      const total = recordsToProcess.length;
+
+      for (let i = 0; i < total; i++) {
+        const record = recordsToProcess[i];
+        const name =
+          `${record.first_name || ""} ${record.last_name || ""}`.trim() ||
+          `Record #${i + 1}`;
+
+        setStatusText(`Filling out registration ${i + 1} of ${total}: ${name}`);
+        setProgress(Math.round((i / total) * 90) + 5);
+
+        // Load a temporary instance of the template, modify it, and copy it
+        const tempDoc = await PDFDocument.load(templateBytes);
+        tempDoc.registerFontkit(fontkit);
+        const page = tempDoc.getPages()[0];
+
+        // Embed the custom Inter-Medium font if loaded; fallback to standard Helvetica-Bold
+        const fontMedium = mediumFontBytes
+          ? await tempDoc.embedFont(mediumFontBytes)
+          : await tempDoc.embedFont(StandardFonts.HelveticaBold);
+
+        const fontBold = await tempDoc.embedFont(StandardFonts.HelveticaBold);
+        const bluePenColor = rgb(0.08, 0.22, 0.58);
+
+        // Map every text field in the record
+        Object.keys(coords).forEach((key) => {
+          const field = coords[key];
+          const val = record[key];
+
+          if (field.type === "text" && val && String(val).trim() !== "") {
+            page.drawText(String(val).trim(), {
+              x: field.x,
+              y: field.y,
+              size: 11,
+              font: fontMedium,
+              color: bluePenColor,
+            });
+          }
+        });
+
+        // Specialized Suffix Checkbox Logic
+        const suffixVal = String(record.suffix || "")
+          .trim()
+          .toUpperCase()
+          .replace(/\./g, ""); // Clean "JR." to "JR"
+        if (suffixVal === "JR") {
+          const field = coords.suffix_jr || { x: 414, y: 702 };
+          page.drawText("X", {
+            x: field.x,
+            y: field.y,
+            size: 10,
+            font: fontBold,
+            color: bluePenColor,
+          });
+        } else if (suffixVal === "SR") {
+          const field = coords.suffix_sr || { x: 432, y: 702 };
+          page.drawText("X", {
+            x: field.x,
+            y: field.y,
+            size: 10,
+            font: fontBold,
+            color: bluePenColor,
+          });
+        } else if (suffixVal === "II") {
+          const field = coords.suffix_ii || { x: 448, y: 702 };
+          page.drawText("X", {
+            x: field.x,
+            y: field.y,
+            size: 10,
+            font: fontBold,
+            color: bluePenColor,
+          });
+        } else if (suffixVal === "III") {
+          const field = coords.suffix_iii || { x: 466, y: 702 };
+          page.drawText("X", {
+            x: field.x,
+            y: field.y,
+            size: 10,
+            font: fontBold,
+            color: bluePenColor,
+          });
+        } else if (suffixVal === "IV") {
+          const field = coords.suffix_iv || { x: 484, y: 702 };
+          page.drawText("X", {
+            x: field.x,
+            y: field.y,
+            size: 10,
+            font: fontBold,
+            color: bluePenColor,
+          });
+        }
+
+        // Copy modified template page into the final consolidated batch document
+        const [copiedPage] = await batchPdf.copyPages(tempDoc, [0]);
+        batchPdf.addPage(copiedPage);
+
+        // A tiny artificial delay to give the browser thread space to render our progress state smoothly
+        await new Promise((resolve) => setTimeout(resolve, 5));
+      }
+
+      setStatusText("Assembling multi-page registration batch file...");
+      setProgress(95);
+
+      const batchBytes = await batchPdf.save();
+      const blob = new Blob([batchBytes as any], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+
+      setGeneratedBlobUrl(url);
+      setProgress(100);
+      setIsSuccess(true);
+
+      // Programmatic auto-download of the completed file
+      const downloadLink = document.createElement("a");
+      downloadLink.href = url;
+      downloadLink.setAttribute(
+        "download",
+        `pa_voter_registrations_batch_${recordsToProcess.length}_records.pdf`,
+      );
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    } catch (err: any) {
+      setValidationError(`Engine processing failed: ${err.message}`);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {validationError && (
+        <div className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-xl shadow-sm flex items-start gap-3">
+          <div className="p-1 bg-rose-100 rounded text-rose-800 mt-0.5">
+            <AlertTriangle className="h-5 w-5" />
+          </div>
+          <div className="flex-grow">
+            <h4 className="font-semibold text-sm">Processing Error</h4>
+            <p className="text-xs mt-0.5 leading-relaxed">{validationError}</p>
+            {missingHeaders.length > 0 && (
+              <div className="mt-2">
+                <span className="text-xs font-semibold">
+                  Missing Headers Checklist:
+                </span>
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  {missingHeaders.map((h) => (
+                    <span
+                      key={h}
+                      className="bg-rose-100 border border-rose-200 text-rose-700 px-2 py-0.5 rounded text-[10px] font-mono"
+                    >
+                      ⚠️ {h}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          {csvFile && (
+            <div className="flex space-x-1 bg-slate-200/60 p-1 rounded-xl w-fit">
+              <button
+                onClick={() => setActiveTab("upload")}
+                className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+                  activeTab === "upload"
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                Upload Center
+              </button>
+              <button
+                onClick={() => setActiveTab("preview")}
+                className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+                  activeTab === "preview"
+                    ? "bg-white text-slate-900 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                Voter Registrations ({records.length})
+              </button>
+            </div>
+          )}
+
+          {activeTab === "upload" && (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 flex flex-col items-center justify-center text-center">
+              <label
+                htmlFor="new-movers-csv-upload"
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+                className="w-full max-w-lg border-2 border-dashed border-slate-300 rounded-2xl p-8 hover:border-blue-500 hover:bg-slate-50/50 transition-all cursor-pointer flex flex-col items-center group"
+              >
+                <div className="p-4 bg-blue-50 rounded-full text-blue-600 mb-4 group-hover:scale-110 transition-transform">
+                  <FileSpreadsheet className="h-8 w-8" />
+                </div>
+
+                <h4 className="text-slate-900 font-bold text-base">
+                  Drag & Drop Your Voter CSV
+                </h4>
+                <p className="text-slate-500 text-xs mt-1 max-w-xs">
+                  Supports <code>.csv</code> spreadsheet format. Pre-fills on
+                  official voter registration forms.
+                </p>
+
+                <div className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm">
+                  Select File From Device
+                </div>
+
+                <input
+                  id="new-movers-csv-upload"
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv, text/csv, application/csv, application/vnd.ms-excel"
+                  className="hidden"
+                  onChange={(e) => {
+                    if (e.target.files?.[0]) {
+                      processCSV(e.target.files[0]);
+                    }
+                  }}
+                />
+              </label>
+
+              {csvFile && (
+                <div className="mt-6 flex items-center gap-3 bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl text-left w-full max-w-lg">
+                  <div className="p-2 bg-blue-100 rounded-lg text-blue-700">
+                    <FileSpreadsheet className="h-5 w-5" />
+                  </div>
+                  <div className="flex-grow min-w-0">
+                    <h5 className="font-bold text-slate-900 text-xs truncate">
+                      {csvFile.name}
+                    </h5>
+                    <p className="text-[10px] text-slate-500">
+                      {(csvFile.size / 1024).toFixed(1)} KB • {records.length}{" "}
+                      records parsed
+                    </p>
+                  </div>
+                  <button
+                    onClick={clearFile}
+                    className="p-1.5 hover:bg-slate-200 rounded-lg text-slate-400 hover:text-slate-700 transition-colors"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "preview" && (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+              <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <div>
+                  <h4 className="font-bold text-slate-900 text-xs">
+                    Voter Registrations Directory
+                  </h4>
+                  <p className="text-[10px] text-slate-500">
+                    Pre-sorted in walking sequence (Precinct ➔ Street ➔ House ➔
+                    Apt).
+                  </p>
+                </div>
+                <button
+                  onClick={clearFile}
+                  className="text-xs text-rose-600 font-semibold hover:underline flex items-center gap-1"
+                >
+                  <X className="h-3 w-3" /> Clear Dataset
+                </button>
+              </div>
+
+              <div className="overflow-x-auto max-h-[440px]">
+                <table className="w-full text-left text-[11px] text-slate-600 border-collapse">
+                  <thead className="bg-slate-50 text-[10px] text-slate-700 uppercase font-bold tracking-wider sticky top-0 border-b border-slate-150">
+                    <tr>
+                      <th className="px-4 py-3">Num</th>
+                      <th className="px-4 py-3">Voter Name</th>
+                      <th className="px-4 py-3">Age</th>
+                      <th className="px-4 py-3">Sex</th>
+                      <th className="px-4 py-3">Party</th>
+                      <th className="px-4 py-3">Registered Address</th>
+                      <th className="px-4 py-3">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {records.map((r, idx) => (
+                      <tr key={idx} className="hover:bg-slate-50/50">
+                        <td className="px-4 py-2 font-mono text-slate-400">
+                          {idx + 1}
+                        </td>
+                        <td className="px-4 py-2 font-bold text-slate-900">
+                          {r.first_name} {r.last_name} {r.suffix}
+                        </td>
+                        <td className="px-4 py-2">
+                          {r["RNCfiles.Age"] || "N/A"}
+                        </td>
+                        <td className="px-4 py-2 font-medium">
+                          {r.sex || "N/A"}
+                        </td>
+                        <td className="px-4 py-2">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                              String(r["RNCfiles.OfficialParty"])
+                                .toLowerCase()
+                                .includes("dem")
+                                ? "bg-blue-50 border-blue-100 text-blue-700"
+                                : String(r["RNCfiles.OfficialParty"])
+                                      .toLowerCase()
+                                      .includes("rep")
+                                  ? "bg-red-50 border-red-100 text-red-700"
+                                  : "bg-slate-50 border-slate-100 text-slate-600"
+                            }`}
+                          >
+                            {r["RNCfiles.OfficialParty"] || "N/A"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2 max-w-xs truncate">
+                          {r.address}, {r.city}
+                        </td>
+                        <td className="px-4 py-2">
+                          <button
+                            onClick={() => generatePDF(idx)}
+                            disabled={isProcessing}
+                            className="text-blue-600 font-bold hover:underline"
+                          >
+                            Download Single
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-6">
+          {isProcessing && (
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-2">
+                  <RefreshCw className="h-4 w-4 animate-spin text-blue-600" />
+                  Generating Registrations Batch
+                </span>
+                <span className="text-xs font-mono text-blue-600">
+                  {progress}%
+                </span>
+              </div>
+              <div className="w-full bg-slate-100 rounded-full h-2">
+                <div
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+              <p className="text-[10px] text-slate-500 animate-pulse">
+                {statusText}
+              </p>
+            </div>
+          )}
+
+          {isSuccess && generatedBlobUrl && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 shadow-sm space-y-3.5">
+              <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+                Registrations Batch Complete
+              </div>
+              <p className="text-[10px] text-emerald-700 leading-relaxed">
+                All voter records have been successfully embedded onto
+                individual registration forms and merged.
+              </p>
+              <div className="flex gap-2">
+                <a
+                  href={generatedBlobUrl}
+                  download={`pa_voter_registrations_batch_${records.length}_records.pdf`}
+                  className="flex-grow flex items-center justify-center gap-1.5 py-2 px-3 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-colors shadow-sm"
+                >
+                  <Download className="h-3.5 w-3.5" /> Re-download Batch
+                </a>
+              </div>
+            </div>
+          )}
+
+          {records.length > 0 && !isProcessing && (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 text-center space-y-4">
+              <div className="p-3 bg-blue-50 text-blue-600 rounded-full w-fit mx-auto">
+                <Printer className="h-6 w-6" />
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-900 text-xs">
+                  Compile Registration Batch
+                </h4>
+                <p className="text-slate-500 text-[10px] mt-0.5 leading-relaxed">
+                  Merge all {records.length} voter records onto the PA Voter
+                  Registration template and download a single multi-page file.
+                </p>
+              </div>
+              <button
+                onClick={() => generatePDF(null)}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-colors"
+              >
+                Compile and Download Batch PDF ({records.length} Pages)
+                <Download className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+            <h3 className="font-bold text-slate-900 text-xs flex items-center gap-2 mb-3">
+              <FileText className="h-4.5 w-4.5 text-blue-600" />
+              New Movers workflow
+            </h3>
+            <p className="text-xs text-slate-600 leading-normal">
+              This module is designed for processing out-of-state new movers. It
+              uploads the same 25-column CSV template, sorts them sequentially,
+              and pre-fills them in bulk on the official PA Voter Registration
+              template.
+            </p>
+            <a
+              href="/pa_voter_ballots_sample.csv"
+              download
+              className="w-full mt-4 flex items-center justify-center gap-2 py-2 px-3 border border-slate-200 rounded-lg text-slate-700 text-[11px] font-semibold hover:bg-slate-50 transition-colors block text-center"
+            >
+              <FileSpreadsheet className="h-4 w-4 text-emerald-600 inline-block align-middle" />
+              <span className="ml-1.5 align-middle">
+                Download Sample CSV Template
+              </span>
+            </a>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+            <button
+              onClick={() => setShowCoordsEditor(!showCoordsEditor)}
+              className="w-full flex justify-between items-center p-5 bg-white border-b border-transparent font-bold text-slate-900 text-xs hover:bg-slate-50 transition-colors focus:outline-none"
+            >
+              <span className="flex items-center gap-2">
+                <Settings className="h-4.5 w-4.5 text-blue-600" />
+                Fine-tune Registration Alignment
+              </span>
+              <span className="text-xs text-blue-600">
+                {showCoordsEditor ? "Hide" : "Open"}
+              </span>
+            </button>
+
+            {showCoordsEditor && (
+              <div className="p-5 border-t border-slate-100 bg-slate-50/50 space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] font-bold text-slate-700">
+                    Registration Fields
+                  </span>
+                  <button
+                    onClick={resetCoordinates}
+                    className="text-[10px] text-rose-600 font-semibold hover:underline"
+                  >
+                    Reset Map
+                  </button>
+                </div>
+
+                <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                  {Object.keys(coords).map((key) => {
+                    const item = coords[key];
+                    return (
+                      <div
+                        key={key}
+                        className="bg-white border p-3 rounded-xl shadow-xs space-y-2 text-[11px]"
+                      >
+                        <div className="flex justify-between font-bold text-slate-800">
+                          <span>{item.label}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex items-center gap-1">
+                            <span>X:</span>
+                            <input
+                              type="number"
+                              value={item.x}
+                              onChange={(e) =>
+                                handleCoordinateChange(
+                                  key,
+                                  "x",
+                                  parseInt(e.target.value) || 0,
+                                )
+                              }
+                              className="w-full bg-slate-50 border rounded px-2 py-0.5 focus:outline-none"
+                            />
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span>Y:</span>
+                            <input
+                              type="number"
+                              value={item.y}
+                              onChange={(e) =>
+                                handleCoordinateChange(
+                                  key,
+                                  "y",
+                                  parseInt(e.target.value) || 0,
+                                )
+                              }
+                              className="w-full bg-slate-50 border rounded px-2 py-0.5 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

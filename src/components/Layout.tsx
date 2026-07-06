@@ -10,6 +10,7 @@ import {
   Briefcase,
   MapPin,
   BookOpen,
+  UserPlus,
 } from "lucide-react";
 
 interface LayoutProps {
@@ -63,6 +64,12 @@ export default function Layout({
       label: "Federal / Military Move",
       icon: Briefcase,
       description: "Employees living out-of-state",
+    },
+    {
+      id: "new-movers",
+      label: "New Movers",
+      icon: UserPlus,
+      description: "Recent Republican residents from out-of-state",
     },
     {
       id: "county-address",
