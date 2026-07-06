@@ -365,9 +365,9 @@ const DEFAULT_COORDS_REGISTER: Record<string, FieldCoord> = {
     name: "annual_request",
     label: "Annual Request Checkbox",
     x: 189,
-    y: 206,
+    y: 643,
     type: "checkbox",
-    pageIndex: 0,
+    pageIndex: 1,
   },
 
   // Page 1 Section 9 coordinates (Previous registration details)
@@ -862,6 +862,9 @@ export default function App() {
 
       {activeTab === "new-movers" && (
         <NewMoversBatch
+          coords={coords}
+          resetCoordinates={resetCoordinates}
+          handleCoordinateChange={handleCoordinateChange}
           mediumFontBytes={mediumFontBytes}
           requiredHeaders={REQUIRED_HEADERS}
         />

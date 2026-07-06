@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import Papa from "papaparse";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
@@ -24,215 +24,25 @@ interface FieldCoord {
   pageIndex?: number;
 }
 
-const DEFAULT_COORDS_REGISTER: Record<string, FieldCoord> = {
-  last_name: {
-    name: "last_name",
-    label: "Last Name",
-    x: 248,
-    y: 698,
-    type: "text",
-    pageIndex: 0,
-  },
-  suffix_jr: {
-    name: "suffix_jr",
-    label: "Suffix Jr Box",
-    x: 414,
-    y: 702,
-    type: "checkbox",
-    pageIndex: 0,
-  },
-  suffix_sr: {
-    name: "suffix_sr",
-    label: "Suffix Sr Box",
-    x: 432,
-    y: 702,
-    type: "checkbox",
-    pageIndex: 0,
-  },
-  suffix_ii: {
-    name: "suffix_ii",
-    label: "Suffix II Box",
-    x: 448,
-    y: 702,
-    type: "checkbox",
-    pageIndex: 0,
-  },
-  suffix_iii: {
-    name: "suffix_iii",
-    label: "Suffix III Box",
-    x: 466,
-    y: 702,
-    type: "checkbox",
-    pageIndex: 0,
-  },
-  suffix_iv: {
-    name: "suffix_iv",
-    label: "Suffix IV Box",
-    x: 484,
-    y: 702,
-    type: "checkbox",
-    pageIndex: 0,
-  },
-  first_name: {
-    name: "first_name",
-    label: "First Name",
-    x: 248,
-    y: 676,
-    type: "text",
-    pageIndex: 0,
-  },
-  middle_name: {
-    name: "middle_name",
-    label: "Middle Name / Initial",
-    x: 504,
-    y: 676,
-    type: "text",
-    pageIndex: 0,
-  },
-  birthdate: {
-    name: "birthdate",
-    label: "Birthdate (MM/DD/YYYY)",
-    x: 272,
-    y: 568,
-    type: "text",
-    pageIndex: 0,
-  },
-  phone: {
-    name: "phone",
-    label: "Phone (Optional)",
-    x: 230,
-    y: 550,
-    type: "text",
-    pageIndex: 0,
-  },
-  email: {
-    name: "email",
-    label: "Email (Optional)",
-    x: 400,
-    y: 550,
-    type: "text",
-    pageIndex: 0,
-  },
-  address: {
-    name: "address",
-    label: "Address (not P.O. Box)",
-    x: 280,
-    y: 504,
-    type: "text",
-    pageIndex: 0,
-  },
-  suite_number: {
-    name: "suite_number",
-    label: "Apt/Suite Number",
-    x: 544,
-    y: 504,
-    type: "text",
-    pageIndex: 0,
-  },
-  city: {
-    name: "city",
-    label: "City/Town",
-    x: 242,
-    y: 486,
-    type: "text",
-    pageIndex: 0,
-  },
-  state: {
-    name: "state",
-    label: "State",
-    x: 390,
-    y: 486,
-    type: "text",
-    pageIndex: 0,
-  },
-  zip_code: {
-    name: "zip_code",
-    label: "ZIP Code",
-    x: 432,
-    y: 486,
-    type: "text",
-    pageIndex: 0,
-  },
-  municipality: {
-    name: "municipality",
-    label: "Municipality",
-    x: 244,
-    y: 558,
-    type: "text",
-    pageIndex: 0,
-  },
-  county: {
-    name: "county",
-    label: "County",
-    x: 524,
-    y: 486,
-    type: "text",
-    pageIndex: 0,
-  },
-  precinct: {
-    name: "precinct",
-    label: "Voting District / Precinct",
-    x: 320,
-    y: 448,
-    type: "text",
-    pageIndex: 0,
-  },
-  ward: {
-    name: "ward",
-    label: "Ward",
-    x: 408,
-    y: 448,
-    type: "text",
-    pageIndex: 0,
-  },
-  mailing_address: {
-    name: "mailing_address",
-    label: "Mailing Address",
-    x: 356,
-    y: 422,
-    type: "text",
-    pageIndex: 0,
-  },
-  mailing_city: {
-    name: "mailing_city",
-    label: "Mailing City",
-    x: 234,
-    y: 402,
-    type: "text",
-    pageIndex: 0,
-  },
-  mailing_state: {
-    name: "mailing_state",
-    label: "Mailing State",
-    x: 480,
-    y: 402,
-    type: "text",
-    pageIndex: 0,
-  },
-  mailing_zip: {
-    name: "mailing_zip",
-    label: "Mailing ZIP",
-    x: 528,
-    y: 402,
-    type: "text",
-    pageIndex: 0,
-  },
-};
-
 interface NewMoversBatchProps {
+  coords: Record<string, FieldCoord>;
+  resetCoordinates: () => void;
+  handleCoordinateChange: (
+    fieldName: string,
+    axis: "x" | "y",
+    val: number,
+  ) => void;
   mediumFontBytes: ArrayBuffer | null;
   requiredHeaders: string[];
 }
 
 export default function NewMoversBatch({
+  coords,
+  resetCoordinates,
+  handleCoordinateChange,
   mediumFontBytes,
   requiredHeaders,
 }: NewMoversBatchProps) {
-  const [coords, setCoords] = useState<Record<string, FieldCoord>>(() => {
-    const saved = localStorage.getItem("mib-newmovers-coords");
-    return saved ? JSON.parse(saved) : DEFAULT_COORDS_REGISTER;
-  });
-
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [records, setRecords] = useState<any[]>([]);
   const [missingHeaders, setMissingHeaders] = useState<string[]>([]);
@@ -246,30 +56,6 @@ export default function NewMoversBatch({
   const [activeTab, setActiveTab] = useState<"upload" | "preview">("upload");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Auto-save coordinate nudges
-  useEffect(() => {
-    localStorage.setItem("mib-newmovers-coords", JSON.stringify(coords));
-  }, [coords]);
-
-  const handleCoordinateChange = (
-    fieldName: string,
-    axis: "x" | "y",
-    val: number,
-  ) => {
-    setCoords((prev) => ({
-      ...prev,
-      [fieldName]: {
-        ...prev[fieldName],
-        [axis]: Math.max(0, val),
-      },
-    }));
-  };
-
-  const resetCoordinates = () => {
-    setCoords(DEFAULT_COORDS_REGISTER);
-    localStorage.removeItem("mib-newmovers-coords");
-  };
 
   const processCSV = (file: File) => {
     setValidationError(null);
@@ -443,7 +229,7 @@ export default function NewMoversBatch({
         // Load a temporary instance of the template, modify it, and copy it
         const tempDoc = await PDFDocument.load(templateBytes);
         tempDoc.registerFontkit(fontkit);
-        const page = tempDoc.getPages()[0];
+        const pages = tempDoc.getPages();
 
         // Embed the custom Inter-Medium font if loaded; fallback to standard Helvetica-Bold
         const fontMedium = mediumFontBytes
@@ -457,9 +243,11 @@ export default function NewMoversBatch({
         Object.keys(coords).forEach((key) => {
           const field = coords[key];
           const val = record[key];
+          const pageIdx = field.pageIndex || 0;
+          const targetPage = pages[pageIdx] || pages[0];
 
           if (field.type === "text" && val && String(val).trim() !== "") {
-            page.drawText(String(val).trim(), {
+            targetPage.drawText(String(val).trim(), {
               x: field.x,
               y: field.y,
               size: 11,
@@ -469,50 +257,50 @@ export default function NewMoversBatch({
           }
         });
 
-        // Specialized Suffix Checkbox Logic
+        // Specialized Suffix Checkbox Logic (on Page 1)
         const suffixVal = String(record.suffix || "")
           .trim()
           .toUpperCase()
           .replace(/\./g, ""); // Clean "JR." to "JR"
-        if (suffixVal === "JR") {
+        if (suffixVal === "JR" && pages[0]) {
           const field = coords.suffix_jr || { x: 414, y: 702 };
-          page.drawText("X", {
+          pages[0].drawText("X", {
             x: field.x,
             y: field.y,
             size: 10,
             font: fontBold,
             color: bluePenColor,
           });
-        } else if (suffixVal === "SR") {
+        } else if (suffixVal === "SR" && pages[0]) {
           const field = coords.suffix_sr || { x: 432, y: 702 };
-          page.drawText("X", {
+          pages[0].drawText("X", {
             x: field.x,
             y: field.y,
             size: 10,
             font: fontBold,
             color: bluePenColor,
           });
-        } else if (suffixVal === "II") {
+        } else if (suffixVal === "II" && pages[0]) {
           const field = coords.suffix_ii || { x: 448, y: 702 };
-          page.drawText("X", {
+          pages[0].drawText("X", {
             x: field.x,
             y: field.y,
             size: 10,
             font: fontBold,
             color: bluePenColor,
           });
-        } else if (suffixVal === "III") {
+        } else if (suffixVal === "III" && pages[0]) {
           const field = coords.suffix_iii || { x: 466, y: 702 };
-          page.drawText("X", {
+          pages[0].drawText("X", {
             x: field.x,
             y: field.y,
             size: 10,
             font: fontBold,
             color: bluePenColor,
           });
-        } else if (suffixVal === "IV") {
+        } else if (suffixVal === "IV" && pages[0]) {
           const field = coords.suffix_iv || { x: 484, y: 702 };
-          page.drawText("X", {
+          pages[0].drawText("X", {
             x: field.x,
             y: field.y,
             size: 10,
@@ -521,9 +309,25 @@ export default function NewMoversBatch({
           });
         }
 
-        // Copy modified template page into the final consolidated batch document
-        const [copiedPage] = await batchPdf.copyPages(tempDoc, [0]);
-        batchPdf.addPage(copiedPage);
+        // Draw the Annual Mail-in request checkbox on Page 2 (Section 11)
+        const annualField = coords.annual_request || { x: 189, y: 643 };
+        const targetPage =
+          pages[
+            annualField.pageIndex !== undefined ? annualField.pageIndex : 1
+          ] || pages[1];
+        if (targetPage) {
+          targetPage.drawText("X", {
+            x: annualField.x,
+            y: annualField.y,
+            size: 11,
+            font: fontBold,
+            color: bluePenColor,
+          });
+        }
+
+        // Copy modified template pages (both Page 1 and Page 2) into the final consolidated batch document
+        const copiedPages = await batchPdf.copyPages(tempDoc, [0, 1]);
+        copiedPages.forEach((cp) => batchPdf.addPage(cp));
 
         // A tiny artificial delay to give the browser thread space to render our progress state smoothly
         await new Promise((resolve) => setTimeout(resolve, 5));

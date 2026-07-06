@@ -19,28 +19,406 @@ interface CountyAddress {
 }
 
 const COUNTY_ADDRESSES: Record<string, CountyAddress> = {
+  Adams: {
+    name: "Adams County Voter Registration",
+    line1: "117 Baltimore St, Rm 106",
+    line2: "Gettysburg, PA 17325",
+    line3: "",
+  },
+  Allegheny: {
+    name: "Allegheny County Voter Registration",
+    line1: "542 Forbes Ave, Ste 312",
+    line2: "Pittsburgh, PA 15219",
+    line3: "",
+  },
+  Armstrong: {
+    name: "Armstrong County Voter Registration",
+    line1: "Administration Bldg, 450 E Market St",
+    line2: "Kittanning, PA 16201",
+    line3: "",
+  },
+  Beaver: {
+    name: "Beaver County Voter Registration",
+    line1: "810 Third St",
+    line2: "Beaver, PA 15009",
+    line3: "",
+  },
+  Bedford: {
+    name: "Bedford County Voter Registration",
+    line1: "200 S Juliana St, 3rd Fl",
+    line2: "Bedford, PA 15522",
+    line3: "",
+  },
   Berks: {
-    name: "Berks County Board of Elections",
-    line1: "633 Court St 1st Fl",
+    name: "Berks County Voter Registration",
+    line1: "633 Court St, 1st Fl",
     line2: "Reading, PA 19601",
     line3: "",
   },
+  Blair: {
+    name: "Blair County Voter Registration",
+    line1: "423 Allegheny St",
+    line2: "Hollidaysburg, PA 16648",
+    line3: "",
+  },
+  Bradford: {
+    name: "Bradford County Voter Registration",
+    line1: "6 Court St, Ste 2",
+    line2: "Towanda, PA 18848",
+    line3: "",
+  },
+  Bucks: {
+    name: "Bucks County Voter Registration",
+    line1: "55 E Court St",
+    line2: "Doylestown, PA 18901",
+    line3: "",
+  },
+  Butler: {
+    name: "Butler County Voter Registration",
+    line1: "PO Box 1208, 227 West Cunningham St",
+    line2: "Butler, PA 16003",
+    line3: "",
+  },
+  Cambria: {
+    name: "Cambria County Voter Registration",
+    line1: "200 S Center St",
+    line2: "Ebensburg, PA 15931",
+    line3: "",
+  },
+  Cameron: {
+    name: "Cameron County Voter Registration",
+    line1: "20 E Fifth St",
+    line2: "Emporium, PA 15834",
+    line3: "",
+  },
+  Carbon: {
+    name: "Carbon County Voter Registration",
+    line1: "44 Susquehanna St, PO Box 170",
+    line2: "Jim Thorpe, PA 18229",
+    line3: "",
+  },
+  Centre: {
+    name: "Centre County Voter Registration",
+    line1: "420 Holmes St, Willowbank Office Bldg",
+    line2: "Bellefonte, PA 16823",
+    line3: "",
+  },
   Chester: {
-    name: "Chester County Board of Elections",
-    line1: "601 Westtown Rd Ste 105",
+    name: "Chester County Voter Registration",
+    line1: "601 Westtown Rd, Ste 150",
     line2: "West Chester, PA 19380",
     line3: "",
   },
+  Clarion: {
+    name: "Clarion County Voter Registration",
+    line1: "Administrative Bldg, Rm 104",
+    line2: "Clarion, PA 16214",
+    line3: "",
+  },
+  Clearfield: {
+    name: "Clearfield County Voter Registration",
+    line1: "212 E Locust St, Ste 106",
+    line2: "Clearfield, PA 16830",
+    line3: "",
+  },
+  Clinton: {
+    name: "Clinton County Voter Registration",
+    line1: "2 Piper Way, Ste 309",
+    line2: "Lock Haven, PA 17745",
+    line3: "",
+  },
+  Columbia: {
+    name: "Columbia County Voter Registration",
+    line1: "Columbia Cnty Courthouse, 11 W Main St",
+    line2: "Bloomsburg, PA 17815",
+    line3: "",
+  },
+  Crawford: {
+    name: "Crawford County Voter Registration",
+    line1: "903 Diamond Park",
+    line2: "Meadville, PA 16335",
+    line3: "",
+  },
+  Cumberland: {
+    name: "Cumberland County Voter Registration",
+    line1: "1601 Ritner Highway, Ste 201",
+    line2: "Carlisle, PA 17013",
+    line3: "",
+  },
+  Dauphin: {
+    name: "Dauphin County Voter Registration",
+    line1: "2 S Second St, 5th Fl",
+    line2: "Harrisburg, PA 17101",
+    line3: "",
+  },
   Delaware: {
-    name: "Delaware County Board of Elections",
-    line1: "Govt Center Bldg",
-    line2: "201 W Front St",
-    line3: "Media, PA 19063-2728",
+    name: "Delaware County Voter Registration",
+    line1: "Govt Center Bldg, 201 W Front St",
+    line2: "Media, PA 19063",
+    line3: "",
+  },
+  Elk: {
+    name: "Elk County Voter Registration",
+    line1: "300 Center St",
+    line2: "Ridgway, PA 15853",
+    line3: "",
+  },
+  Erie: {
+    name: "Erie County Voter Registration",
+    line1: "140 W 6th St",
+    line2: "Erie, PA 16501",
+    line3: "",
+  },
+  Fayette: {
+    name: "Fayette County Voter Registration",
+    line1: "2 W Main St",
+    line2: "Uniontown, PA 15401",
+    line3: "",
+  },
+  Forest: {
+    name: "Forest County Voter Registration",
+    line1: "526 Elm St",
+    line2: "Tionesta, PA 16353",
+    line3: "",
+  },
+  Franklin: {
+    name: "Franklin County Voter Registration",
+    line1: "272 N Second St",
+    line2: "Chambersburg, PA 17201",
+    line3: "",
+  },
+  Fulton: {
+    name: "Fulton County Voter Registration",
+    line1: "116 W Market St, Ste 203",
+    line2: "McConnellsburg, PA 17233",
+    line3: "",
+  },
+  Greene: {
+    name: "Greene County Voter Registration",
+    line1: "93 E High St",
+    line2: "Waynesburg, PA 15370",
+    line3: "",
+  },
+  Huntingdon: {
+    name: "Huntingdon County Voter Registration",
+    line1: "Bailey Bldg, 233 Penn St",
+    line2: "Huntingdon, PA 16652",
+    line3: "",
+  },
+  Indiana: {
+    name: "Indiana County Voter Registration",
+    line1: "825 Philadelphia St",
+    line2: "Indiana, PA 15701",
+    line3: "",
+  },
+  Jefferson: {
+    name: "Jefferson County Voter Registration",
+    line1: "155 Main St",
+    line2: "Brookville, PA 15825",
+    line3: "",
+  },
+  Juniata: {
+    name: "Juniata County Voter Registration",
+    line1: "1 N Main St",
+    line2: "Mifflintown, PA 17059",
+    line3: "",
+  },
+  Lackawanna: {
+    name: "Lackawanna County Voter Registration",
+    line1: "123 Wyoming Ave",
+    line2: "Scranton, PA 18503",
+    line3: "",
+  },
+  Lancaster: {
+    name: "Lancaster County Voter Registration",
+    line1: "PO Box 2139, 150 N Queen St",
+    line2: "Lancaster, PA 17608",
+    line3: "",
+  },
+  Lawrence: {
+    name: "Lawrence County Voter Registration",
+    line1: "430 Court St",
+    line2: "New Castle, PA 16101",
+    line3: "",
+  },
+  Lebanon: {
+    name: "Lebanon County Voter Registration",
+    line1: "400 S 8th St",
+    line2: "Lebanon, PA 17042",
+    line3: "",
+  },
+  Lehigh: {
+    name: "Lehigh County Voter Registration",
+    line1: "17 S Seventh St",
+    line2: "Allentown, PA 18101",
+    line3: "",
+  },
+  Luzerne: {
+    name: "Luzerne County Voter Registration",
+    line1: "20 N Pennsylvania Ave",
+    line2: "Wilkes-Barre, PA 18711",
+    line3: "",
+  },
+  Lycoming: {
+    name: "Lycoming County Voter Registration",
+    line1: "48 W Third St",
+    line2: "Williamsport, PA 17701",
+    line3: "",
+  },
+  McKean: {
+    name: "McKean County Voter Registration",
+    line1: "500 W Main St",
+    line2: "Smethport, PA 16749",
+    line3: "",
+  },
+  Mercer: {
+    name: "Mercer County Voter Registration",
+    line1: "130 North Pitt Street",
+    line2: "Mercer, PA 16137",
+    line3: "",
+  },
+  Mifflin: {
+    name: "Mifflin County Voter Registration",
+    line1: "20 N Wayne St",
+    line2: "Lewistown, PA 17044",
+    line3: "",
+  },
+  Monroe: {
+    name: "Monroe County Voter Registration",
+    line1: "One Quaker Plaza",
+    line2: "Stroudsburg, PA 18360",
+    line3: "",
   },
   Montgomery: {
-    name: "Montgomery County Board of Elections",
+    name: "Montgomery County Voter Registration",
     line1: "PO Box 311",
-    line2: "Norristown, PA 19404-0311",
+    line2: "Norristown, PA 19404",
+    line3: "",
+  },
+  Montour: {
+    name: "Montour County Voter Registration",
+    line1: "435 East Front St",
+    line2: "Danville, PA 17821",
+    line3: "",
+  },
+  Northampton: {
+    name: "Northampton County Voter Registration",
+    line1: "670 Wolf Ave",
+    line2: "Easton, PA 18042",
+    line3: "",
+  },
+  Northumberland: {
+    name: "Northumberland County Voter Registration",
+    line1: "320 N 2nd St",
+    line2: "Sunbury, PA 17801",
+    line3: "",
+  },
+  Perry: {
+    name: "Perry County Voter Registration",
+    line1: "PO Box 37",
+    line2: "New Bloomfield, PA 17068",
+    line3: "",
+  },
+  Philadelphia: {
+    name: "Philadelphia County Voter Registration",
+    line1: "1423 Spring Garden St",
+    line2: "Philadelphia, PA 19130",
+    line3: "",
+  },
+  Pike: {
+    name: "Pike County Voter Registration",
+    line1: "506 Broad St",
+    line2: "Milford, PA 18337",
+    line3: "",
+  },
+  Potter: {
+    name: "Potter County Voter Registration",
+    line1: "1 N Main St",
+    line2: "Coudersport, PA 16915",
+    line3: "",
+  },
+  Schuylkill: {
+    name: "Schuylkill County Voter Registration",
+    line1: "420 N Centre St",
+    line2: "Pottsville, PA 17901",
+    line3: "",
+  },
+  Snyder: {
+    name: "Snyder County Voter Registration",
+    line1: "PO Box 217",
+    line2: "Middleburg, PA 17842",
+    line3: "",
+  },
+  Somerset: {
+    name: "Somerset County Voter Registration",
+    line1: "300 N Center Ave",
+    line2: "Somerset, PA 15501",
+    line3: "",
+  },
+  Sullivan: {
+    name: "Sullivan County Voter Registration",
+    line1: "245 Muncy St, PO Box 157",
+    line2: "Laporte, PA 18626",
+    line3: "",
+  },
+  Susquehanna: {
+    name: "Susquehanna County Voter Registration",
+    line1: "PO Box 218, 105 Maple St",
+    line2: "Montrose, PA 18801",
+    line3: "",
+  },
+  Tioga: {
+    name: "Tioga County Voter Registration",
+    line1: "118 Main St",
+    line2: "Wellsboro, PA 16901",
+    line3: "",
+  },
+  Union: {
+    name: "Union County Voter Registration",
+    line1: "155 N 15th St",
+    line2: "Lewisburg, PA 17837",
+    line3: "",
+  },
+  Venango: {
+    name: "Venango County Voter Registration",
+    line1: "1174 Elk St",
+    line2: "Franklin, PA 16323",
+    line3: "",
+  },
+  Warren: {
+    name: "Warren County Voter Registration",
+    line1: "204 Fourth Ave",
+    line2: "Warren, PA 16365",
+    line3: "",
+  },
+  Washington: {
+    name: "Washington County Voter Registration",
+    line1: "95 W Beau St",
+    line2: "Washington, PA 15301",
+    line3: "",
+  },
+  Wayne: {
+    name: "Wayne County Voter Registration",
+    line1: "925 Court St",
+    line2: "Honesville, PA 18431",
+    line3: "",
+  },
+  Westmoreland: {
+    name: "Westmoreland County Voter Registration",
+    line1: "2 N Main St, Ste 109",
+    line2: "Greensburg, PA 15601",
+    line3: "",
+  },
+  Wyoming: {
+    name: "Wyoming County Voter Registration",
+    line1: "1 Wyoming Ave",
+    line2: "Tunkhannock, PA 18657",
+    line3: "",
+  },
+  York: {
+    name: "York County Voter Registration",
+    line1: "2401 Pleasant Valley Rd",
+    line2: "York, PA 17402",
     line3: "",
   },
 };
@@ -212,10 +590,13 @@ export default function AddressPrinter({
               className="w-full text-xs px-4 py-3 rounded-xl border border-slate-200 bg-white font-medium focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all cursor-pointer"
             >
               <option value="">Choose County...</option>
-              <option value="Berks">Berks County</option>
-              <option value="Chester">Chester County</option>
-              <option value="Delaware">Delaware County</option>
-              <option value="Montgomery">Montgomery County</option>
+              {Object.keys(COUNTY_ADDRESSES)
+                .sort()
+                .map((countyName) => (
+                  <option key={countyName} value={countyName}>
+                    {countyName} County
+                  </option>
+                ))}
             </select>
           </div>
 
