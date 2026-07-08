@@ -3,7 +3,7 @@ import Layout from "./components/Layout";
 import CsvBatchPrinter from "./components/CsvBatchPrinter";
 import AddressPrinter from "./components/AddressPrinter";
 import HelpGuide from "./components/HelpGuide";
-import NewMoversBatch from "./components/NewMoversBatch";
+import { getRequiredHeadersForReason } from "./utils/csvSchema";
 
 interface FieldCoord {
   name: string;
@@ -519,196 +519,6 @@ const DEFAULT_COORDS_REGISTER: Record<string, FieldCoord> = {
   },
 };
 
-export interface CsvFieldSchema {
-  headerName: string;
-  isRequired: boolean;
-  type: "string" | "string[]";
-  isNullable: boolean;
-  description: string;
-}
-
-export const CSV_SCHEMA: Record<string, CsvFieldSchema> = {
-  First_Name: {
-    headerName: "First_Name",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "First name of the voter",
-  },
-  Middle_Name: {
-    headerName: "Middle_Name",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "Middle name or initial of the voter",
-  },
-  Last_Name: {
-    headerName: "Last_Name",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "Last name of the voter",
-  },
-  Suffix: {
-    headerName: "Suffix",
-    isRequired: true,
-    type: "string[]",
-    isNullable: true,
-    description: "Suffix of the voter (e.g. JR, SR, III, IV)",
-  },
-  Date_Of_Birth: {
-    headerName: "Date_Of_Birth",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "Birthdate of the voter (MM/DD/YYYY)",
-  },
-  House__: {
-    headerName: "House__",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "House number of the voter",
-  },
-  StreetNameComplete: {
-    headerName: "StreetNameComplete",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "Street name of the voter",
-  },
-  Apt__: {
-    headerName: "Apt__",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "Apartment or suite number of the voter",
-  },
-  City: {
-    headerName: "City",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "City or town",
-  },
-  State: {
-    headerName: "State",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "State code (e.g. PA)",
-  },
-  Zip_Code: {
-    headerName: "Zip_Code",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "ZIP code",
-  },
-  MAddress_Line_1: {
-    headerName: "MAddress_Line_1",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "Mailing address line 1",
-  },
-  MAddress_Line_2: {
-    headerName: "MAddress_Line_2",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "Mailing address line 2",
-  },
-  MCity: {
-    headerName: "MCity",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "Mailing city",
-  },
-  MState: {
-    headerName: "MState",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "Mailing state",
-  },
-  MZip_Code: {
-    headerName: "MZip_Code",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "Mailing ZIP code",
-  },
-  Ward: {
-    headerName: "Ward",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "Ward number",
-  },
-  "RNCfiles.PrimaryPhone": {
-    headerName: "RNCfiles.PrimaryPhone",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "Voter's primary phone number",
-  },
-  Voter_Status: {
-    headerName: "Voter_Status",
-    isRequired: true,
-    type: "string",
-    isNullable: true,
-    description: "Status of the voter",
-  },
-  Precinct: {
-    headerName: "Precinct",
-    isRequired: false,
-    type: "string",
-    isNullable: true,
-    description: "Precinct identifier",
-  },
-  "RNCfiles.OfficialParty": {
-    headerName: "RNCfiles.OfficialParty",
-    isRequired: false,
-    type: "string",
-    isNullable: true,
-    description: "Official registered political party",
-  },
-  "RNCfiles.Age": {
-    headerName: "RNCfiles.Age",
-    isRequired: false,
-    type: "string",
-    isNullable: true,
-    description: "Voter's age",
-  },
-  Sex: {
-    headerName: "Sex",
-    isRequired: false,
-    type: "string",
-    isNullable: true,
-    description: "Voter's sex",
-  },
-  "VBM.AppType": {
-    headerName: "VBM.AppType",
-    isRequired: false,
-    type: "string",
-    isNullable: true,
-    description: "Type of mail-in/absentee application",
-  },
-  County: {
-    headerName: "County",
-    isRequired: false,
-    type: "string",
-    isNullable: true,
-    description: "Numeric county code of voter",
-  },
-};
-
-const REQUIRED_HEADERS = Object.values(CSV_SCHEMA)
-  .filter((field) => field.isRequired)
-  .map((field) => field.headerName);
-
 export default function App() {
   const [activeTab, setActiveTab] = useState<string>("mail-in-voting");
   const [coords, setCoords] = useState<Record<string, FieldCoord>>(() => {
@@ -837,6 +647,7 @@ export default function App() {
         "name-change",
         "party-change",
         "federal-military",
+        "new-movers",
       ].includes(activeTab) && (
         <CsvBatchPrinter
           coords={coords}
@@ -844,23 +655,13 @@ export default function App() {
           handleCoordinateChange={handleCoordinateChange}
           mediumFontBytes={mediumFontBytes}
           pdfTemplateLoaded={pdfTemplateLoaded}
-          requiredHeaders={REQUIRED_HEADERS}
+          requiredHeaders={getRequiredHeadersForReason(activeTab)}
           applicationReason={activeTab}
         />
       )}
 
       {activeTab === "county-address" && (
         <AddressPrinter mediumFontBytes={mediumFontBytes} />
-      )}
-
-      {activeTab === "new-movers" && (
-        <NewMoversBatch
-          coords={coords}
-          resetCoordinates={resetCoordinates}
-          handleCoordinateChange={handleCoordinateChange}
-          mediumFontBytes={mediumFontBytes}
-          requiredHeaders={REQUIRED_HEADERS}
-        />
       )}
 
       {activeTab === "help-guide" && <HelpGuide />}

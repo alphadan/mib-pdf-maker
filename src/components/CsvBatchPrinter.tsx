@@ -19,6 +19,7 @@ import VoterApplicationsList from "./VoterApplicationsList";
 import WalkingChecklist from "./WalkingChecklist";
 import { resolveCounty } from "../utils/paVoterLookups";
 import precincts from "../utils/precincts.json";
+import { generateCsvTemplateContent } from "../utils/csvSchema";
 
 interface FieldCoord {
   name: string;
@@ -171,27 +172,43 @@ export default function CsvBatchPrinter({
         }
 
         const mappedData = rawData.map((record: any) => {
+          const appReason = applicationReason;
           return {
             ...record,
-            last_name: record.Last_Name || "",
-            suffix: record.Suffix || "",
-            first_name: record.First_Name || "",
-            middle_name: record.Middle_Name || "",
-            birthdate: record.Date_Of_Birth || "",
-            phone: record["RNCfiles.PrimaryPhone"] || "",
-            sex: record.Sex || "",
-            suite_number: record.Apt__ || "",
-            city: record.City || "",
-            state: record.State || "",
-            zip_code: record.Zip_Code || "",
-            precinct: record.Precinct || "",
-            ward: record.Ward || "",
-            mailing_city: record.MCity || "",
-            mailing_state: record.MState || "",
-            mailing_zip: record.MZip_Code || "",
-            county: resolveCounty(record.County),
+            last_name: record.Last_Name || record.last_name || "",
+            suffix: record.Suffix || record.suffix || "",
+            first_name: record.First_Name || record.first_name || "",
+            middle_name: record.Middle_Name || record.middle_name || "",
+            birthdate:
+              record.Date_Of_Birth ||
+              record.birthdate ||
+              record.Date_of_Birth ||
+              "",
+            phone:
+              record["RNCfiles.PrimaryPhone"] ||
+              record.phone ||
+              record.PrimaryPhone ||
+              "",
+            sex: record.Sex || record.sex || "",
+            suite_number:
+              record.Apt__ ||
+              record.suite_number ||
+              record.Apt_No ||
+              record.Apt ||
+              "",
+            city: record.City || record.city || "",
+            state: record.State || record.state || "",
+            zip_code: record.Zip_Code || record.zip_code || record.Zip || "",
+            precinct: record.Precinct || record.precinct || "",
+            ward: record.Ward || record.ward || "",
+            mailing_city: record.MCity || record.mailing_city || "",
+            mailing_state: record.MState || record.mailing_state || "",
+            mailing_zip: record.MZip_Code || record.mailing_zip || "",
+            county: resolveCounty(record.County || record.county),
             municipality: (() => {
-              const precinctVal = String(record.Precinct || "").trim();
+              const precinctVal = String(
+                record.Precinct || record.precinct || "",
+              ).trim();
               if (!precinctVal) return "";
               const padded = precinctVal.padStart(3, "0");
               const found = precincts.find(
@@ -201,18 +218,42 @@ export default function CsvBatchPrinter({
               );
               return found ? found.municipality : "";
             })(),
-            household_party: record.householdParty || "",
+            household_party:
+              record.householdParty || record.household_party || "",
 
             // Construct virtual compound fields for overlaying
             address:
-              `${record.House__ || ""} ${record.StreetNameComplete || ""}`.trim(),
+              `${record.House__ || record.house_number || ""} ${record.StreetNameComplete || record.street_name || ""}`.trim(),
             mailing_address:
-              `${record.MAddress_Line_1 || ""} ${record.MAddress_Line_2 || ""}`.trim(),
-            annual_request: String(record["VBM.AppType"] || "")
-              .toLowerCase()
-              .includes("annual")
-              ? "yes"
-              : "no",
+              `${record.MAddress_Line_1 || record.mailing_address || ""} ${record.MAddress_Line_2 || ""}`.trim(),
+            annual_request:
+              appReason === "new-movers"
+                ? "yes"
+                : String(record["VBM.AppType"] || record.annual_request || "")
+                      .toLowerCase()
+                      .includes("annual") ||
+                    String(
+                      record["VBM.AppType"] || record.annual_request || "",
+                    ).toLowerCase() === "yes"
+                  ? "yes"
+                  : "no",
+
+            // Reason-specific fallback mappings
+            is_citizen: record.is_citizen || record.Is_Citizen || "yes",
+            is_at_least_18:
+              record.is_at_least_18 || record.Is_At_Least_18 || "yes",
+            gender: record.Sex || record.sex || record.gender || "",
+            party_choice:
+              record["RNCfiles.OfficialParty"] ||
+              record.party_choice ||
+              record.Party_Choice ||
+              "",
+            prev_name: record.prev_name || record.Prev_Name || "",
+            prev_address: record.prev_address || record.Prev_Address || "",
+            prev_city: record.prev_city || record.Prev_City || "",
+            prev_state: record.prev_state || record.Prev_State || "",
+            prev_zip: record.prev_zip || record.Prev_Zip || "",
+            prev_county: record.prev_county || record.Prev_County || "",
           };
         });
 
@@ -267,24 +308,28 @@ export default function CsvBatchPrinter({
       "name-change": "change_name_template.csv",
       "party-change": "change_party_template.csv",
       "federal-military": "federal_move_template.csv",
+      "new-movers": "new_movers_template.csv",
     };
-
-    // Dynamically resolve template URL based on application purpose
-    const url =
-      applicationReason === "new-movers"
-        ? "/pa_new_movers.csv"
-        : "/pa_voter_ballots_sample.csv";
 
     const targetName =
       TEMPLATE_FILENAMES[applicationReason] || "voter_database_template.csv";
 
-    const link = document.createElement("a");
-    link.href = url;
-    // Set matching clean download filename
-    link.setAttribute("download", targetName);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    try {
+      const csvContent = generateCsvTemplateContent(applicationReason);
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      // Set matching clean download filename
+      link.setAttribute("download", targetName);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      console.error("Failed to generate and download dynamic template:", err);
+    }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -838,7 +883,10 @@ export default function CsvBatchPrinter({
         if (!isMailIn) {
           let reasonX = 0;
           let reasonY = 604.6;
-          if (applicationReason === "new-registration") {
+          if (
+            applicationReason === "new-registration" ||
+            applicationReason === "new-movers"
+          ) {
             reasonX = 189;
           } else if (applicationReason === "mail-in-voting") {
             reasonX = 288;

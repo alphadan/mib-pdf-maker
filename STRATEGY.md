@@ -70,11 +70,24 @@ graph TD
 
 ## 📁 4. Required CSV Schema & Database Mapping
 
-To ensure successful parsing, the CSV must include the **19 required column headers** listed below. Optional headers (like `Precinct`, `Sex`, `VBM.AppType`, and `County`) can be omitted completely without causing errors. `"Municipality"` is fully deprecated as a CSV column and is derived programmatically:
+Rather than forcing a rigid, monolithic 19-column spreadsheet layout, the Pennsylvania Ballot Application Suite uses a **Dynamic Context-Aware Schema Engine** (`src/utils/csvSchema.ts`) that adjusts required columns according to the active workspace tab.
 
-```csv
-First_Name,Middle_Name,Last_Name,Suffix,Date_Of_Birth,House__,StreetNameComplete,Apt__,City,State,Zip_Code,MAddress_Line_1,MAddress_Line_2,MCity,MState,MZip_Code,Ward,RNCfiles.PrimaryPhone,Voter_Status
-```
+### Schema Requirement Tiers
+
+1. **Universal Core (Mandatory on ALL Uploads):**
+   * Identifies the voter's identity and active residential address:
+   * Headers: `First_Name`, `Last_Name`, `Date_Of_Birth`, `House__`, `StreetNameComplete`, `City`, `State`, `Zip_Code`
+2. **Reason-Specific Requirements (Validated Contextually):**
+   * Enforced strictly depending on the selected workspace action:
+     * **`new-registration`** & **`party-change`**: `RNCfiles.OfficialParty`
+     * **`address-change`** & **`new-movers`**: `Prev_Address`, `Prev_City`, `Prev_State`, `Prev_Zip`
+     * **`name-change`**: `Prev_Name`
+3. **Fully Optional Fields (Never Cause Errors):**
+   * Can be completely omitted from your uploaded files:
+   * Headers: `Middle_Name`, `Suffix`, `Apt__`, `MAddress_Line_1`, `MAddress_Line_2`, `MCity`, `MState`, `MZip_Code`, `Ward`, `Precinct`, `County`, `Sex`, `VBM.AppType`, `RNCfiles.PrimaryPhone`, `Voter_Status`.
+
+### Automated Template Assembler (In-Memory Downloads)
+The suite dynamically generates templates on-the-fly. Clicking **"Download Sample CSV"** runs an in-memory compiler that stitches together the exact universal and specific headers required for the selected action, appends useful optional columns, creates a sample mock row, and triggers a download. This eliminates the maintenance of separate static file resources.
 
 ### Coordinate baselines mapped from your actual dataset:
 

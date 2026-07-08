@@ -84,14 +84,33 @@ npm run build && npx firebase deploy --only hosting
 
 ---
 
-## 📁 Required CSV Schema
+## 📁 Dynamic Context-Aware CSV Schema
 
-To protect data consistency, the CSV validation engine only checks for the **19 required columns** below. Optional columns (like `Precinct`, `Sex`, `VBM.AppType`, `County`, and `Municipality`) can be omitted completely without failing the upload:
+The suite features a **Dynamic, Context-Aware CSV Schema Validation Engine** designed to prevent user friction. Instead of forcing a monolithic 19-column spreadsheet checklist for all tasks, the application dynamically identifies requirements based on the active sidebar category.
 
-### Mandatory Column Headers (Case-Sensitive):
+### 🌟 1. Universal Required Columns (Mandatory on ALL Uploads)
+These core columns identify the voter and their residential registration address. They must exist on all uploaded spreadsheets:
 ```csv
-First_Name, Middle_Name, Last_Name, Suffix, Date_Of_Birth, House__, StreetNameComplete, Apt__, City, State, Zip_Code, MAddress_Line_1, MAddress_Line_2, MCity, MState, MZip_Code, Ward, RNCfiles.PrimaryPhone, Voter_Status
+First_Name, Last_Name, Date_Of_Birth, House__, StreetNameComplete, City, State, Zip_Code
 ```
+
+### 🎯 2. Workspace-Specific Required Columns (Tab-Aware Validation)
+The engine strictly validates and requires these headers **only** when performing relevant operations:
+* **New Voter Registration** & **Change of Political Party:**
+  * Requires: `RNCfiles.OfficialParty` (to know what party the voter wants to join)
+* **Change of Address** & **New Movers:**
+  * Requires: `Prev_Address`, `Prev_City`, `Prev_State`, `Prev_Zip` (to pre-fill Section 9: Previous Address on Page 2)
+* **Change of Name:**
+  * Requires: `Prev_Name` (to pre-fill Section 9: Previous Registered Name)
+* **Mail-In Ballots** & **Federal/Military:**
+  * No extra reason-specific required columns! 
+
+### ⚙️ 3. Optional Columns (Omitted Freely)
+Columns that are highly useful but optional. If omitted, they will never throw errors or block uploading:
+* `Middle_Name`, `Suffix` (e.g. JR, SR, II, III, IV), `Apt__` (apartment/suite), `Ward`, `Precinct`, `County`, `RNCfiles.PrimaryPhone`, `Sex`, `VBM.AppType` (annual mail-in), and `Voter_Status`.
+
+### 💾 4. In-Memory Dynamic CSV Template Downloader
+We have eliminated static template CSV files. When you click **"Download Sample CSV"** inside any workspace, the system automatically runs `generateCsvTemplateContent(activeTab)` in browser memory. It generates a perfectly tailored CSV template containing exactly the required headers, optional helper columns, and a pre-filled sample row representing the active workflow, then downloads it dynamically.
 
 ### Automated PDF Formatting Rules:
 * **Resident State Prefill Bypass:** Since the Pennsylvania application is a state-specific form, the state code `'PA'` is pre-printed on the template. The system skips drawing the `state` text to avoid messy overlaps but retains it in your CSV/Interfaces.
