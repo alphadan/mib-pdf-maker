@@ -100,7 +100,7 @@ export default function Layout({
                 PA Ballot Application PreFiller
               </h1>
               <p className="text-[10px] text-slate-400 font-medium">
-                Batch Pre-Filling & County Mailing Manager
+                Republican Batch Pre-Filling & County Mailing Manager
               </p>
             </div>
           </div>

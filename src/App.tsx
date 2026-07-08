@@ -703,13 +703,6 @@ export const CSV_SCHEMA: Record<string, CsvFieldSchema> = {
     isNullable: true,
     description: "Numeric county code of voter",
   },
-  Municipality: {
-    headerName: "Municipality",
-    isRequired: false,
-    type: "string",
-    isNullable: true,
-    description: "Numeric municipality code of voter",
-  },
 };
 
 const REQUIRED_HEADERS = Object.values(CSV_SCHEMA)

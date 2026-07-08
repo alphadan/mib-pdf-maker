@@ -2,7 +2,8 @@ import React, { useState, useRef } from "react";
 import Papa from "papaparse";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
-import { resolveCounty, resolveMunicipality } from "../utils/paVoterLookups";
+import { resolveCounty } from "../utils/paVoterLookups";
+import precincts from "../utils/precincts.json";
 import {
   FileSpreadsheet,
   CheckCircle2,
@@ -119,7 +120,17 @@ export default function NewMoversBatch({
             mailing_state: record.MState || "",
             mailing_zip: record.MZip_Code || "",
             county: resolveCounty(record.County),
-            municipality: resolveMunicipality(record.Municipality),
+            municipality: (() => {
+              const precinctVal = String(record.Precinct || "").trim();
+              if (!precinctVal) return "";
+              const padded = precinctVal.padStart(3, "0");
+              const found = precincts.find(
+                (p: any) =>
+                  String(p.number) === padded ||
+                  String(p.number) === precinctVal,
+              );
+              return found ? found.municipality : "";
+            })(),
 
             // Construct virtual compound fields for overlaying
             address:
@@ -650,8 +661,8 @@ export default function NewMoversBatch({
               template.
             </p>
             <a
-              href="/pa_voter_ballots_sample.csv"
-              download
+              href="/pa_new_movers.csv"
+              download="pa_new_movers.csv"
               className="w-full mt-4 flex items-center justify-center gap-2 py-2 px-3 border border-slate-200 rounded-lg text-slate-700 text-[11px] font-semibold hover:bg-slate-50 transition-colors block text-center"
             >
               <FileSpreadsheet className="h-4 w-4 text-emerald-600 inline-block align-middle" />

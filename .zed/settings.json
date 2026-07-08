@@ -1,0 +1,14 @@
+{
+  "mcp": {
+    "servers": {
+      "filesystem": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-filesystem",
+          "C:\\Users\\design2\\dev\\project_tutorials\\mib-pdf-maker"
+        ]
+      }
+    }
+  }
+}
