@@ -260,15 +260,28 @@ export default function CsvBatchPrinter({
   };
 
   const downloadSampleCSV = () => {
+    const TEMPLATE_FILENAMES: Record<string, string> = {
+      "mail-in-voting": "mail_in_ballot_template.csv",
+      "new-registration": "new_voter_registration_template.csv",
+      "address-change": "change_address_template.csv",
+      "name-change": "change_name_template.csv",
+      "party-change": "change_party_template.csv",
+      "federal-military": "federal_move_template.csv",
+    };
+
     // Dynamically resolve template URL based on application purpose
-    const url = applicationReason === "new-movers"
-      ? "/pa_new_movers.csv"
-      : "/pa_voter_ballots_sample.csv";
+    const url =
+      applicationReason === "new-movers"
+        ? "/pa_new_movers.csv"
+        : "/pa_voter_ballots_sample.csv";
+
+    const targetName =
+      TEMPLATE_FILENAMES[applicationReason] || "voter_database_template.csv";
 
     const link = document.createElement("a");
     link.href = url;
     // Set matching clean download filename
-    link.setAttribute("download", url.substring(1));
+    link.setAttribute("download", targetName);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

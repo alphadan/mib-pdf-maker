@@ -662,7 +662,7 @@ export default function NewMoversBatch({
             </p>
             <a
               href="/pa_new_movers.csv"
-              download="pa_new_movers.csv"
+              download="new_movers_template.csv"
               className="w-full mt-4 flex items-center justify-center gap-2 py-2 px-3 border border-slate-200 rounded-lg text-slate-700 text-[11px] font-semibold hover:bg-slate-50 transition-colors block text-center"
             >
               <FileSpreadsheet className="h-4 w-4 text-emerald-600 inline-block align-middle" />

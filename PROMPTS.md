@@ -55,7 +55,7 @@ Precinct,First_Name,Middle_Name,Last_Name,Suffix,Date_Of_Birth,House__,StreetNam
 13. `MZip_Code` $\rightarrow$ `mailing_zip`
 14. **Composite Address:** `House__` + `StreetNameComplete` $\rightarrow$ `address`
 15. **Composite Mailing Address:** `MAddress_Line_1` + `MAddress_Line_2` $\rightarrow$ `mailing_address`
-16. **Dynamic Municipalities:** Resolve by looking up `Precinct` number in `public/precincts.json`.
+16. **Dynamic Municipalities:** Resolve by looking up `Precinct` number in `src/utils/precincts.json`.
 
 ---
 

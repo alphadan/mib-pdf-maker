@@ -33,7 +33,7 @@ To deliver the suite rapidly while maintaining a robust and extensible codebase,
 
 ### 🟡 Medium Priority (Completed)
 1. **State-Wide 67 County Mailing Address Registry**: Updated the self-mailer tool to support all 67 Pennsylvania counties with an alphabetical dynamic selector.
-2. **Master Chester County Precinct Database**: Compiled and extracted all 230 Chester County precincts into a structured, validated JSON file (`public/precincts.json`).
+2. **Master Chester County Precinct Database**: Compiled and extracted all 230 Chester County precincts into a structured, validated JSON file (`src/utils/precincts.json`).
 3. **Coordinate Page Indices Mapping**: Support coordinate properties like `pageIndex` so previous registration details (Section 8) print exactly on Page 2 of the Registration PDF.
 4. **Context-Driven Manual Forms**: Built an integrated "Single Manual Entry" tab inside each workspace. Shows/hides Section 8 Previous Registration inputs based on selected intent to reduce operator screen noise.
 5. **Sensitive Data Privacy Toggles**: Enforces a privacy toggle checkbox, allowing operators to easily exclude voter Date of Birth or Phone Number from pre-filled forms.
