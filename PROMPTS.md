@@ -35,37 +35,43 @@ When responding to or writing code for this project, you must strictly follow th
 
 ## 📂 4. Dynamic Context-Aware CSV Ingestion Schema
 
-The spreadsheet ingestion engine (`src/utils/csvSchema.ts`) validates uploaded voter tables dynamically depending on the current active tab. It splits files into three logical checking tiers:
+The spreadsheet ingestion engine (`src/utils/csvSchema.ts`) validates uploaded voter tables dynamically depending on the current active tab. It splits files into three color-coded checking tiers:
 
-1. **Universal Keys (Mandatory on All Tabs):**
-   * `First_Name`, `Last_Name`, `Date_Of_Birth`, `House__`, `StreetNameComplete`, `City`, `State`, `Zip_Code`.
-2. **Contextual Action Keys (Validated Dynamically):**
-   * `RNCfiles.OfficialParty` (Requires on `new-registration` & `party-change`)
-   * `Prev_Address`, `Prev_City`, `Prev_State`, `Prev_Zip` (Requires on `address-change` & `new-movers`)
-   * `Prev_Name` (Requires on `name-change`)
-3. **Optional Helper Keys (Always Optional):**
-   * `Middle_Name`, `Suffix`, `Apt__`, `MAddress_Line_1`, `MAddress_Line_2`, `MCity`, `MState`, `MZip_Code`, `Ward`, `Precinct`, `County`, `RNCfiles.PrimaryPhone`, `Sex`, `VBM.AppType`, `Voter_Status`.
+1. **🟢 Universal Core (Green Columns - Mandatory on ALL Tabs):**
+   * `First_Name`, `Middle_Name`, `Last_Name`, `Suffix`, `House`, `Street`, `City`, `Zip_Code`, `County`, `Birth_Date`.
+2. **🔵 Optional Helpers (Blue Columns - Always Optional, Never Throw Errors):**
+   * `Precinct`, `Phone`, `Email`, `Municipality`, `Ward`, `Lived_Since`, `MAddress`, `MCity`, `MState`, `MZip`.
+3. **🟡 Reason-Specific Context (Yellow Columns - Validated Dynamically):**
+   * **Mail-In Ballot (`mail-in-voting`)**: `Mib_Address`, `Mib_City`, `Mib_State`, `Mib_Zip`
+   * **Voter Registration Purposes**: `Reason`, `Citizen`, `Age`, `Gender`, `Party`
+   * **Change of Name (`name-change`)**: `Reason`, `Citizen`, `Age`, `Gender`, `Party`, `Prev_Name`
+   * **Change of Address & New Movers**: `Reason`, `Citizen`, `Age`, `Gender`, `Party`, `Prev_Address`
 
 ### Programmatic Mapping Overrides & Case Fallbacks:
 The importer maps raw CSV record values to unified schema-wide attributes using dual lowercase/uppercase fallback logic:
 1. `last_name` $\leftarrow$ `Last_Name` or `last_name`
 2. `first_name` $\leftarrow$ `First_Name` or `first_name`
 3. `middle_name` $\leftarrow$ `Middle_Name` or `middle_name`
-4. `birthdate` $\leftarrow$ `Date_Of_Birth` or `birthdate` or `Date_of_Birth`
-5. `phone` $\leftarrow$ `RNCfiles.PrimaryPhone` or `phone` or `PrimaryPhone`
-6. `suite_number` $\leftarrow$ `Apt__` or `suite_number` or `Apt` or `Apt_No`
-7. `city` $\leftarrow$ `City` or `city`
-8. `state` $\leftarrow$ `State` or `state`
-9. `zip_code` $\leftarrow$ `Zip_Code` or `zip_code` or `Zip`
-10. `ward` $\leftarrow$ `Ward` or `ward`
-11. `mailing_city` $\leftarrow$ `MCity` or `mailing_city`
-12. `mailing_state` $\leftarrow$ `MState` or `mailing_state`
-13. `mailing_zip` $\leftarrow$ `MZip_Code` or `mailing_zip`
-14. **Composite Home Address:** Combining `House__` + `StreetNameComplete` into `address`
-15. **Composite Mailing Address:** Combining `MAddress_Line_1` + `MAddress_Line_2` into `mailing_address`
-16. **Annual Request Toggle:** For tab `new-movers` (always hardcoded to `"yes"`). For other tabs, checks if `VBM.AppType` or `annual_request` contains `"annual"` or `"yes"`.
-17. **Previous Registration Overrides:** Maps `prev_name` from `Prev_Name` / `prev_name`, and maps `prev_address` / `prev_city` / `prev_state` / `prev_zip` from both upper/lowercase variants.
-18. **Dynamic Municipalities:** Automatically derived by looking up numerical `Precinct` inside `src/utils/precincts.json`. (Omit manual municipality inputs).
+4. `birthdate` $\leftarrow$ `Birth_Date` or `Date_Of_Birth` or `birthdate`
+5. `phone` $\leftarrow$ `Phone` or `RNCfiles.PrimaryPhone` or `phone`
+6. `email` $\leftarrow$ `Email` or `email`
+7. `sex`/`gender` $\leftarrow$ `Gender` or `Sex` or `sex`
+8. `suite_number` $\leftarrow$ `Apt` or `Apt__` or `suite_number`
+9. `city` $\leftarrow$ `City` or `city`
+10. `state` $\leftarrow$ `State` or `state`
+11. `zip_code` $\leftarrow$ `Zip_Code` or `zip_code` or `Zip`
+12. `precinct` $\leftarrow$ `Precinct` or `precinct`
+13. `ward` $\leftarrow$ `Ward` or `ward`
+14. `lived_since` $\leftarrow$ `Lived_Since` or `lived_since`
+15. `county` $\leftarrow$ `County` or `county` (resolves programmatically to PA full text)
+16. `municipality` $\leftarrow$ `Municipality` or `municipality` (if empty, resolves from Precinct number)
+17. **Composite Home Address:** Combining `House` (or `House__`) + `Street` (or `StreetNameComplete`) into `address`
+18. **Composite Mailing Address:** 
+    * If Mail-In: uses `Mib_Address`, `Mib_City`, `Mib_State`, `Mib_Zip` (ballot papers destination)
+    * If General Registration: uses `MAddress` (or `MAddress_Line_1`) + `MAddress_Line_2` into `mailing_address`
+19. **Annual Request Toggle:** For tab `new-movers` (always hardcoded to `"yes"`). For other tabs, checks if `VBM.AppType` or `annual_request` contains `"annual"` or `"yes"`.
+20. **Previous Registration Overrides:** Maps `prev_name` from `Prev_Name` / `prev_name`, and maps `prev_address` / `prev_city` / `prev_state` / `prev_zip` from both upper/lowercase variants.
+21. **Dynamic Municipalities:** Automatically derived by looking up numerical `Precinct` inside `src/utils/precincts.json`. (Omit manual municipality inputs if Precinct is supplied).
 
 ---
 

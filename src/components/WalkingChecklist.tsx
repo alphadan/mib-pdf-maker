@@ -57,8 +57,9 @@ export default function WalkingChecklist({
           <thead className="bg-slate-50 text-[10px] text-slate-700 uppercase font-bold tracking-wider sticky top-0 border-b border-slate-150">
             <tr>
               <th className="px-4 py-3">Num</th>
+              <th className="px-4 py-3">Precinct</th>
               <th className="px-4 py-3">Voter Name</th>
-              <th className="px-4 py-3">Registered Address</th>
+              <th className="px-4 py-3">Registered Address (House, Street, Apt, City, State, Zip Code)</th>
               <th className="px-4 py-3">Age</th>
               <th className="px-4 py-3">Sex</th>
               <th className="px-4 py-3">Party</th>
@@ -71,6 +72,9 @@ export default function WalkingChecklist({
               <tr key={idx} className="hover:bg-slate-50/50">
                 <td className="px-4 py-2 font-mono text-slate-400">
                   {idx + 1}
+                </td>
+                <td className="px-4 py-2 font-mono text-slate-700">
+                  {r.Precinct || r.precinct || "N/A"}
                 </td>
                 <td className="px-4 py-2 font-bold text-slate-900">
                   {r.first_name} {r.last_name} {r.suffix}

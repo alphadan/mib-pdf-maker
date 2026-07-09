@@ -329,6 +329,14 @@ const DEFAULT_COORDS_REGISTER: Record<string, FieldCoord> = {
     type: "text",
     pageIndex: 0,
   },
+  lived_since: {
+    name: "lived_since",
+    label: "Sec 6: Lived Since (Years)",
+    x: 536,
+    y: 466,
+    type: "text",
+    pageIndex: 0,
+  },
   mailing_address: {
     name: "mailing_address",
     label: "Mailing Address",
@@ -382,7 +390,7 @@ const DEFAULT_COORDS_REGISTER: Record<string, FieldCoord> = {
   prev_full_address: {
     name: "prev_full_address",
     label: "Sec 9: Previous Full Address",
-    x: 300,
+    x: 320,
     y: 246,
     type: "text",
     pageIndex: 0,

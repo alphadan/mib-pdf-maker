@@ -1,255 +1,151 @@
-export interface AppFieldSchema {
-  headerName: string;
-  type: "string" | "string[]";
-  isNullable: boolean;
-  description: string;
-  requirementLevel: "universal" | "reason-specific" | "optional";
-  requiredForReasons?: string[]; // Triggers validation ONLY if activeTab is in this list
+export interface FormUseConfig {
+  formType: string;
+  tabId: string;
+  pdfTemplate: string;
+  universalFields: string[];
+  optionalFields: string[];
+  requiredReasonSpecific: string[];
+  optionalReasonSpecific: string[];
 }
 
-export const DYNAMIC_CSV_SCHEMA: Record<string, AppFieldSchema> = {
-  First_Name: {
-    headerName: "First_Name",
-    requirementLevel: "universal",
-    type: "string",
-    isNullable: true,
-    description: "First name of the voter",
+/**
+ * 📊 Official Form Use Configurations
+ * Groups spreadsheet columns into Green (Universal), Blue (Optional), and Yellow (Reason-Specific)
+ * to align perfectly with your spreadsheet model.
+ */
+export const FORM_USES: FormUseConfig[] = [
+  {
+    formType: "Mail-In",
+    tabId: "mail-in-voting",
+    pdfTemplate: "/PADOS_MailInApplication.pdf",
+    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House", "Street", "City", "Zip_Code", "County", "Birth_Date"],
+    optionalFields: ["Precinct", "Phone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress", "MCity", "MState", "MZip"],
+    requiredReasonSpecific: ["Mib_Address", "Mib_City", "Mib_State", "Mib_Zip"],
+    optionalReasonSpecific: ["Reason", "Citizen", "Age", "Gender", "Party", "Prev_Name", "Prev_Address"]
   },
-  Middle_Name: {
-    headerName: "Middle_Name",
-    requirementLevel: "optional",
-    type: "string",
-    isNullable: true,
-    description: "Middle name or initial of the voter",
+  {
+    formType: "New Registration",
+    tabId: "new-registration",
+    pdfTemplate: "/PADOS_Registration_Application.pdf",
+    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House", "Street", "City", "Zip_Code", "County", "Birth_Date"],
+    optionalFields: ["Precinct", "Phone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress", "MCity", "MState", "MZip"],
+    requiredReasonSpecific: ["Reason", "Citizen", "Age", "Gender", "Party"],
+    optionalReasonSpecific: ["Prev_Name", "Prev_Address", "Mib_Address", "Mib_City", "Mib_State", "Mib_Zip"]
   },
-  Last_Name: {
-    headerName: "Last_Name",
-    requirementLevel: "universal",
-    type: "string",
-    isNullable: true,
-    description: "Last name of the voter",
+  {
+    formType: "Change Name",
+    tabId: "name-change",
+    pdfTemplate: "/PADOS_Registration_Application.pdf",
+    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House", "Street", "City", "Zip_Code", "County", "Birth_Date"],
+    optionalFields: ["Precinct", "Phone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress", "MCity", "MState", "MZip"],
+    requiredReasonSpecific: ["Reason", "Citizen", "Age", "Gender", "Party", "Prev_Name"],
+    optionalReasonSpecific: ["Prev_Address", "Mib_Address", "Mib_City", "Mib_State", "Mib_Zip"]
   },
-  Suffix: {
-    headerName: "Suffix",
-    requirementLevel: "optional",
-    type: "string",
-    isNullable: true,
-    description: "Suffix of the voter (e.g. JR, SR, III, IV)",
+  {
+    formType: "Change Address",
+    tabId: "address-change",
+    pdfTemplate: "/PADOS_Registration_Application.pdf",
+    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House", "Street", "City", "Zip_Code", "County", "Birth_Date"],
+    optionalFields: ["Precinct", "Phone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress", "MCity", "MState", "MZip"],
+    requiredReasonSpecific: ["Reason", "Citizen", "Age", "Gender", "Party", "Prev_Address"],
+    optionalReasonSpecific: ["Prev_Name", "Mib_Address", "Mib_City", "Mib_State", "Mib_Zip"]
   },
-  Date_Of_Birth: {
-    headerName: "Date_Of_Birth",
-    requirementLevel: "universal",
-    type: "string",
-    isNullable: true,
-    description: "Birthdate of the voter (MM/DD/YYYY)",
+  {
+    formType: "Change Party",
+    tabId: "party-change",
+    pdfTemplate: "/PADOS_Registration_Application.pdf",
+    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House", "Street", "City", "Zip_Code", "County", "Birth_Date"],
+    optionalFields: ["Precinct", "Phone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress", "MCity", "MState", "MZip"],
+    requiredReasonSpecific: ["Reason", "Citizen", "Age", "Gender", "Party"],
+    optionalReasonSpecific: ["Prev_Name", "Prev_Address", "Mib_Address", "Mib_City", "Mib_State", "Mib_Zip"]
   },
-  House__: {
-    headerName: "House__",
-    requirementLevel: "universal",
-    type: "string",
-    isNullable: true,
-    description: "House number of the voter's residence",
+  {
+    formType: "Federal Residence",
+    tabId: "federal-military",
+    pdfTemplate: "/PADOS_Registration_Application.pdf",
+    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House", "Street", "City", "Zip_Code", "County", "Birth_Date"],
+    optionalFields: ["Precinct", "Phone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress", "MCity", "MState", "MZip"],
+    requiredReasonSpecific: ["Reason", "Citizen", "Age", "Gender", "Party"],
+    optionalReasonSpecific: ["Prev_Name", "Prev_Address", "Mib_Address", "Mib_City", "Mib_State", "Mib_Zip"]
   },
-  StreetNameComplete: {
-    headerName: "StreetNameComplete",
-    requirementLevel: "universal",
-    type: "string",
-    isNullable: true,
-    description: "Street name of the voter's residence",
-  },
-  Apt__: {
-    headerName: "Apt__",
-    requirementLevel: "optional",
-    type: "string",
-    isNullable: true,
-    description: "Apartment, suite, or room number of the voter",
-  },
-  City: {
-    headerName: "City",
-    requirementLevel: "universal",
-    type: "string",
-    isNullable: true,
-    description: "City or town of residence",
-  },
-  State: {
-    headerName: "State",
-    requirementLevel: "universal",
-    type: "string",
-    isNullable: true,
-    description: "State abbreviation (e.g., PA)",
-  },
-  Zip_Code: {
-    headerName: "Zip_Code",
-    requirementLevel: "universal",
-    type: "string",
-    isNullable: true,
-    description: "ZIP code of residence",
-  },
-  MAddress_Line_1: {
-    headerName: "MAddress_Line_1",
-    requirementLevel: "optional",
-    type: "string",
-    isNullable: true,
-    description: "Optional mailing address line 1 (if different from residence)",
-  },
-  MAddress_Line_2: {
-    headerName: "MAddress_Line_2",
-    requirementLevel: "optional",
-    type: "string",
-    isNullable: true,
-    description: "Optional mailing address line 2",
-  },
-  MCity: {
-    headerName: "MCity",
-    requirementLevel: "optional",
-    type: "string",
-    isNullable: true,
-    description: "Mailing city (if different from residence)",
-  },
-  MState: {
-    headerName: "MState",
-    requirementLevel: "optional",
-    type: "string",
-    isNullable: true,
-    description: "Mailing state (if different from residence)",
-  },
-  MZip_Code: {
-    headerName: "MZip_Code",
-    requirementLevel: "optional",
-    type: "string",
-    isNullable: true,
-    description: "Mailing ZIP code (if different from residence)",
-  },
-  Ward: {
-    headerName: "Ward",
-    requirementLevel: "optional",
-    type: "string",
-    isNullable: true,
-    description: "Optional Ward number",
-  },
-  "RNCfiles.PrimaryPhone": {
-    headerName: "RNCfiles.PrimaryPhone",
-    requirementLevel: "optional",
-    type: "string",
-    isNullable: true,
-    description: "Optional primary telephone number",
-  },
-  Voter_Status: {
-    headerName: "Voter_Status",
-    requirementLevel: "optional",
-    type: "string",
-    isNullable: true,
-    description: "Optional voter registration status (Active/Inactive)",
-  },
-  Precinct: {
-    headerName: "Precinct",
-    requirementLevel: "optional",
-    type: "string",
-    isNullable: true,
-    description: "Optional Precinct or voting district identifier",
-  },
-  "RNCfiles.OfficialParty": {
-    headerName: "RNCfiles.OfficialParty",
-    requirementLevel: "reason-specific",
-    requiredForReasons: ["new-registration", "party-change"],
-    type: "string",
-    isNullable: true,
-    description: "Party selection (Required for new registrations or party changes)",
-  },
-  "RNCfiles.Age": {
-    headerName: "RNCfiles.Age",
-    requirementLevel: "optional",
-    type: "string",
-    isNullable: true,
-    description: "Voter's age",
-  },
-  Sex: {
-    headerName: "Sex",
-    requirementLevel: "optional",
-    type: "string",
-    isNullable: true,
-    description: "Voter's sex (M/F)",
-  },
-  "VBM.AppType": {
-    headerName: "VBM.AppType",
-    requirementLevel: "optional",
-    type: "string",
-    isNullable: true,
-    description: "Optional Mail-in application type (e.g. Annual)",
-  },
-  County: {
-    headerName: "County",
-    requirementLevel: "optional",
-    type: "string",
-    isNullable: true,
-    description: "Optional numeric PA county code (e.g., 46 for Montgomery, 15 for Chester)",
-  },
-  Prev_Name: {
-    headerName: "Prev_Name",
-    requirementLevel: "reason-specific",
-    requiredForReasons: ["name-change"],
-    type: "string",
-    isNullable: true,
-    description: "Voter's previous registered name",
-  },
-  Prev_Address: {
-    headerName: "Prev_Address",
-    requirementLevel: "reason-specific",
-    requiredForReasons: ["address-change", "new-movers"],
-    type: "string",
-    isNullable: true,
-    description: "Voter's previous registered street address",
-  },
-  Prev_City: {
-    headerName: "Prev_City",
-    requirementLevel: "reason-specific",
-    requiredForReasons: ["address-change", "new-movers"],
-    type: "string",
-    isNullable: true,
-    description: "Voter's previous registered city",
-  },
-  Prev_State: {
-    headerName: "Prev_State",
-    requirementLevel: "reason-specific",
-    requiredForReasons: ["address-change", "new-movers"],
-    type: "string",
-    isNullable: true,
-    description: "Voter's previous registered state (e.g., PA or out-of-state code)",
-  },
-  Prev_Zip: {
-    headerName: "Prev_Zip",
-    requirementLevel: "reason-specific",
-    requiredForReasons: ["address-change", "new-movers"],
-    type: "string",
-    isNullable: true,
-    description: "Voter's previous registered ZIP code",
-  },
-  Prev_County: {
-    headerName: "Prev_County",
-    requirementLevel: "optional",
-    type: "string",
-    isNullable: true,
-    description: "Voter's previous registered county",
-  },
-};
+  {
+    formType: "New Movers",
+    tabId: "new-movers",
+    pdfTemplate: "/PADOS_Registration_Application.pdf",
+    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House", "Street", "City", "Zip_Code", "County", "Birth_Date"],
+    optionalFields: ["Precinct", "Phone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress", "MCity", "MState", "MZip"],
+    requiredReasonSpecific: ["Reason", "Citizen", "Age", "Gender", "Party", "Prev_Address"],
+    optionalReasonSpecific: ["Prev_Name", "Mib_Address", "Mib_City", "Mib_State", "Mib_Zip"]
+  }
+];
+
+/**
+ * 📋 Master Column Layout Order matching your Google Spreadsheet exactly.
+ */
+export const SPREADSHEET_COLUMNS_ORDER = [
+  "First_Name",
+  "Middle_Name",
+  "Last_Name",
+  "Suffix",
+  "House",
+  "Street",
+  "City",
+  "Zip_Code",
+  "County",
+  "Birth_Date",
+  "Precinct",
+  "Phone",
+  "Email",
+  "Municipality",
+  "Ward",
+  "Lived_Since",
+  "MAddress",
+  "MCity",
+  "MState",
+  "MZip",
+  "Reason",
+  "Citizen",
+  "Age",
+  "Gender",
+  "Party",
+  "Prev_Name",
+  "Prev_Address",
+  "Mib_Address",
+  "Mib_City",
+  "Mib_State",
+  "Mib_Zip"
+];
 
 /**
  * Returns the exact column headers required for a specific application reason.
+ * Combines Universal (Green) fields with Required Reason-Specific (Yellow) fields.
  */
 export function getRequiredHeadersForReason(reason: string): string[] {
-  return Object.values(DYNAMIC_CSV_SCHEMA)
-    .filter((field) => {
-      if (field.requirementLevel === "universal") return true;
-      if (field.requirementLevel === "reason-specific" && field.requiredForReasons) {
-        return field.requiredForReasons.includes(reason);
-      }
-      return false;
-    })
-    .map((field) => field.headerName);
+  const config = FORM_USES.find((f) => f.tabId === reason);
+  if (!config) return [];
+  return [...config.universalFields, ...config.requiredReasonSpecific];
 }
 
 /**
- * Generates sample data row values for CSV templates.
+ * Filters the master ordered spreadsheet columns to retrieve all columns relevant to a specific tab.
+ */
+export function getColumnsForReason(reason: string): string[] {
+  const config = FORM_USES.find((f) => f.tabId === reason);
+  if (!config) return SPREADSHEET_COLUMNS_ORDER;
+
+  const relevantFields = new Set([
+    ...config.universalFields,
+    ...config.optionalFields,
+    ...config.requiredReasonSpecific,
+    ...config.optionalReasonSpecific
+  ]);
+
+  // Maintain Google Sheets column order
+  return SPREADSHEET_COLUMNS_ORDER.filter((col) => relevantFields.has(col));
+}
+
+/**
+ * Generates mock sample data row values for CSV templates.
  */
 export function getSampleDataForHeader(headerName: string, reason: string): string {
   switch (headerName) {
@@ -261,86 +157,82 @@ export function getSampleDataForHeader(headerName: string, reason: string): stri
       return "Doe";
     case "Suffix":
       return "JR";
-    case "Date_Of_Birth":
-      return "11/04/1984";
-    case "House__":
+    case "House":
       return "123";
-    case "StreetNameComplete":
+    case "Street":
       return "Main St";
-    case "Apt__":
-      return "";
     case "City":
-      return "Norristown";
-    case "State":
-      return "PA";
+      return "Atglen";
     case "Zip_Code":
-      return "19401";
-    case "MAddress_Line_1":
-      return "";
-    case "MAddress_Line_2":
-      return "";
-    case "MCity":
-      return "";
-    case "MState":
-      return "";
-    case "MZip_Code":
-      return "";
-    case "Ward":
-      return "1";
-    case "RNCfiles.PrimaryPhone":
-      return "555-0199";
-    case "Voter_Status":
-      return "Active";
-    case "Precinct":
-      return "810";
-    case "RNCfiles.OfficialParty":
-      return reason === "party-change" ? "REP" : "REP";
-    case "RNCfiles.Age":
-      return "41";
-    case "Sex":
-      return "M";
-    case "VBM.AppType":
-      return "Annual";
+      return "19310";
     case "County":
-      return "46";
+      return "1"; // Montgomery County code
+    case "Birth_Date":
+      return "11/04/1984";
+    case "Precinct":
+      return "5";
+    case "Phone":
+      return "555-0199";
+    case "Email":
+      return "john.doe@example.com";
+    case "Municipality":
+      return "Atglen Borough";
+    case "Ward":
+      return "";
+    case "Lived_Since":
+      return "2015";
+    case "MAddress":
+      return reason === "mail-in-voting" ? "" : "P.O. Box 789";
+    case "MCity":
+      return reason === "mail-in-voting" ? "" : "Harrisburg";
+    case "MState":
+      return reason === "mail-in-voting" ? "" : "PA";
+    case "MZip":
+      return reason === "mail-in-voting" ? "" : "17101";
+    case "Reason":
+      return reason === "new-registration"
+        ? "New Registration"
+        : reason === "name-change"
+          ? "Name Change"
+          : reason === "address-change"
+            ? "Address Change"
+            : reason === "party-change"
+              ? "Party Change"
+              : reason === "new-movers"
+                ? "New Movers"
+                : "";
+    case "Citizen":
+      return "yes";
+    case "Age":
+      return "yes";
+    case "Gender":
+      return "Male";
+    case "Party":
+      return "Republican";
     case "Prev_Name":
-      return "John R Smith";
+      return reason === "name-change" ? "John R Smith" : "";
     case "Prev_Address":
-      return "456 Maple Ave";
-    case "Prev_City":
-      return "West Chester";
-    case "Prev_State":
-      return "PA";
-    case "Prev_Zip":
-      return "19380";
-    case "Prev_County":
-      return "Chester";
+      return reason === "address-change" || reason === "new-movers" ? "123 S Main St West Chester PA 19382 " : "";
+    case "Mib_Address":
+      return reason === "mail-in-voting" ? "789 Pine Rd" : "";
+    case "Mib_City":
+      return reason === "mail-in-voting" ? "Norristown" : "";
+    case "Mib_State":
+      return reason === "mail-in-voting" ? "PA" : "";
+    case "Mib_Zip":
+      return reason === "mail-in-voting" ? "19401" : "";
     default:
       return "";
   }
 }
 
 /**
- * Creates dynamic in-memory CSV template bytes/content based on application reason.
- * Includes universal fields + reason-specific fields + common optional fields.
+ * Creates dynamic in-memory CSV template content based on application reason.
+ * Includes universal fields + optional fields + reason-specific fields in correct column order.
  */
 export function generateCsvTemplateContent(reason: string): string {
-  const required = getRequiredHeadersForReason(reason);
-
-  // Choose nice-to-have headers for each template to keep things highly user-friendly and feature-rich
-  let optional: string[] = ["Precinct", "Ward", "RNCfiles.PrimaryPhone", "Sex", "RNCfiles.Age"];
-
-  if (reason === "mail-in-voting") {
-    optional = [...optional, "MAddress_Line_1", "MAddress_Line_2", "MCity", "MState", "MZip_Code", "VBM.AppType", "County"];
-  } else if (reason === "new-movers" || reason === "address-change") {
-    optional = [...optional, "Prev_County", "County"];
-  } else {
-    optional = [...optional, "County"];
-  }
-
-  const allHeaders = [...new Set([...required, ...optional])];
-  const headerRow = allHeaders.join(",");
-  const sampleRow = allHeaders.map((h) => getSampleDataForHeader(h, reason)).join(",");
-
+  const columns = getColumnsForReason(reason);
+  const headerRow = columns.join(",");
+  const sampleRow = columns.map((h) => getSampleDataForHeader(h, reason)).join(",");
   return `${headerRow}\n${sampleRow}`;
 }

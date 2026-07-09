@@ -180,16 +180,19 @@ export default function CsvBatchPrinter({
             first_name: record.First_Name || record.first_name || "",
             middle_name: record.Middle_Name || record.middle_name || "",
             birthdate:
+              record.Birth_Date ||
               record.Date_Of_Birth ||
               record.birthdate ||
               record.Date_of_Birth ||
               "",
             phone:
+              record.Phone ||
               record["RNCfiles.PrimaryPhone"] ||
               record.phone ||
               record.PrimaryPhone ||
               "",
-            sex: record.Sex || record.sex || "",
+            email: record.Email || record.email || "",
+            sex: record.Sex || record.sex || record.Gender || "",
             suite_number:
               record.Apt__ ||
               record.suite_number ||
@@ -201,11 +204,9 @@ export default function CsvBatchPrinter({
             zip_code: record.Zip_Code || record.zip_code || record.Zip || "",
             precinct: record.Precinct || record.precinct || "",
             ward: record.Ward || record.ward || "",
-            mailing_city: record.MCity || record.mailing_city || "",
-            mailing_state: record.MState || record.mailing_state || "",
-            mailing_zip: record.MZip_Code || record.mailing_zip || "",
+            lived_since: record.Lived_Since || record.lived_since || "",
             county: resolveCounty(record.County || record.county),
-            municipality: (() => {
+            municipality: record.Municipality || record.municipality || (() => {
               const precinctVal = String(
                 record.Precinct || record.precinct || "",
               ).trim();
@@ -223,9 +224,22 @@ export default function CsvBatchPrinter({
 
             // Construct virtual compound fields for overlaying
             address:
-              `${record.House__ || record.house_number || ""} ${record.StreetNameComplete || record.street_name || ""}`.trim(),
-            mailing_address:
-              `${record.MAddress_Line_1 || record.mailing_address || ""} ${record.MAddress_Line_2 || ""}`.trim(),
+              `${record.House || record.House__ || record.house_number || ""} ${record.Street || record.StreetNameComplete || record.street_name || ""}`.trim(),
+            
+            // Map mailing address variables contextually
+            mailing_address: appReason === "mail-in-voting"
+              ? `${record.Mib_Address || record.MAddress || record.MAddress_Line_1 || ""} ${record.MAddress_Line_2 || ""}`.trim()
+              : `${record.MAddress || record.MAddress_Line_1 || ""} ${record.MAddress_Line_2 || ""}`.trim(),
+            mailing_city: appReason === "mail-in-voting"
+              ? record.Mib_City || record.MCity || record.mailing_city || ""
+              : record.MCity || record.mailing_city || "",
+            mailing_state: appReason === "mail-in-voting"
+              ? record.Mib_State || record.MState || record.mailing_state || ""
+              : record.MState || record.mailing_state || "",
+            mailing_zip: appReason === "mail-in-voting"
+              ? record.Mib_Zip || record.MZip || record.MZip_Code || record.mailing_zip || ""
+              : record.MZip || record.MZip_Code || record.mailing_zip || "",
+
             annual_request:
               appReason === "new-movers"
                 ? "yes"
@@ -239,51 +253,59 @@ export default function CsvBatchPrinter({
                   : "no",
 
             // Reason-specific fallback mappings
-            is_citizen: record.is_citizen || record.Is_Citizen || "yes",
+            is_citizen: record.Citizen || record.is_citizen || record.Is_Citizen || "yes",
             is_at_least_18:
-              record.is_at_least_18 || record.Is_At_Least_18 || "yes",
-            gender: record.Sex || record.sex || record.gender || "",
+              record.Age || record.is_at_least_18 || record.Is_At_Least_18 || "yes",
+            gender: record.Gender || record.Sex || record.sex || record.gender || "",
             party_choice:
+              record.Party ||
               record["RNCfiles.OfficialParty"] ||
               record.party_choice ||
               record.Party_Choice ||
               "",
-            prev_name: record.prev_name || record.Prev_Name || "",
-            prev_address: record.prev_address || record.Prev_Address || "",
-            prev_city: record.prev_city || record.Prev_City || "",
-            prev_state: record.prev_state || record.Prev_State || "",
-            prev_zip: record.prev_zip || record.Prev_Zip || "",
-            prev_county: record.prev_county || record.Prev_County || "",
+            prev_name: record.Prev_Name || record.prev_name || record.Prev_Name || "",
+            prev_address: record.Prev_Address || record.prev_address || record.Prev_Address || "",
+            prev_city: record.Prev_City || record.prev_city || record.Prev_City || "",
+            prev_state: record.Prev_State || record.prev_state || record.Prev_State || "",
+            prev_zip: record.Prev_Zip || record.prev_zip || record.Prev_Zip || "",
+            prev_county: record.Prev_County || record.prev_county || record.Prev_County || "",
           };
         });
 
-        // Automatically sort records by Precinct -> Street Name -> House Number -> Apt Number
+        // Automatically sort records from general to specific: Precinct -> City -> Street Name -> House Number -> Apt Number
         const sortedData = [...mappedData].sort((a, b) => {
-          const precinctA = String(a.Precinct || "")
+          const precinctA = String(a.Precinct || a.precinct || "")
             .trim()
             .toLowerCase();
-          const precinctB = String(b.Precinct || "")
+          const precinctB = String(b.Precinct || b.precinct || "")
             .trim()
             .toLowerCase();
-          if (precinctA !== precinctB)
-            return precinctA.localeCompare(precinctB);
+          if (precinctA !== precinctB) return precinctA.localeCompare(precinctB);
 
-          const streetA = String(a.StreetNameComplete || "")
+          const cityA = String(a.City || a.city || "")
             .trim()
             .toLowerCase();
-          const streetB = String(b.StreetNameComplete || "")
+          const cityB = String(b.City || b.city || "")
+            .trim()
+            .toLowerCase();
+          if (cityA !== cityB) return cityA.localeCompare(cityB);
+
+          const streetA = String(a.Street || a.street || a.StreetNameComplete || a.street_name || "")
+            .trim()
+            .toLowerCase();
+          const streetB = String(b.Street || b.street || b.StreetNameComplete || b.street_name || "")
             .trim()
             .toLowerCase();
           if (streetA !== streetB) return streetA.localeCompare(streetB);
 
-          const houseANum = parseInt(a.House__) || 0;
-          const houseBNum = parseInt(b.House__) || 0;
+          const houseANum = parseInt(a.House || a.house || a.House__ || a.house_number || "") || 0;
+          const houseBNum = parseInt(b.House || b.house || b.House__ || b.house_number || "") || 0;
           if (houseANum !== houseBNum) return houseANum - houseBNum;
 
-          const aptA = String(a.Apt__ || "")
+          const aptA = String(a.Apt || a.apt || a.Apt__ || a.suite_number || "")
             .trim()
             .toLowerCase();
-          const aptB = String(b.Apt__ || "")
+          const aptB = String(b.Apt || b.apt || b.Apt__ || b.suite_number || "")
             .trim()
             .toLowerCase();
           return aptA.localeCompare(aptB);
@@ -434,8 +456,8 @@ export default function CsvBatchPrinter({
           font: fontBold,
           color: primaryColor,
         });
-        p.drawText("Registered Address (House, Street, Apt, Municipality)", {
-          x: 260,
+        p.drawText("Registered Address (House, Street, Apt, City, State, Zip Code)", {
+          x: 230,
           y: 522,
           size: 8.5,
           font: fontBold,
@@ -548,7 +570,7 @@ export default function CsvBatchPrinter({
           color: rgbColor(15, 23, 42),
         });
         page.drawText(fullAddress, {
-          x: 260,
+          x: 230,
           y: y,
           size: 7.5,
           font: fontMedium,
@@ -738,65 +760,71 @@ export default function CsvBatchPrinter({
         // First page object for checkbox overlays
         const firstPage = tempDoc.getPages()[0];
 
-        // Specialized Suffix Checkbox Logic (Only for Mail-in form!)
-        if (isMailIn) {
-          // Support string, array of strings, or comma/space separated values.
-          // The values printed with coordinates are JR, SR, III, and IV only.
-          const parseSuffixes = (val: any): string[] => {
-            if (!val) return [];
-            if (Array.isArray(val)) {
-              return val
-                .map((v) => String(v).trim().toUpperCase().replace(/\./g, ""))
-                .filter((v) => ["JR", "SR", "III", "IV"].includes(v));
-            }
-            return String(val)
-              .split(/[\s,]+/)
-              .map((v) => v.trim().toUpperCase().replace(/\./g, ""))
-              .filter((v) => ["JR", "SR", "III", "IV"].includes(v));
-          };
+        // Specialized Suffix Checkbox Logic (Supports both Mail-In and Registration forms!)
+        const parseSuffixes = (val: any): string[] => {
+          if (!val) return [];
+          if (Array.isArray(val)) {
+            return val
+              .map((v) => String(v).trim().toUpperCase().replace(/\./g, ""))
+              .filter((v) => ["JR", "SR", "II", "III", "IV"].includes(v));
+          }
+          return String(val)
+            .split(/[\s,]+/)
+            .map((v) => v.trim().toUpperCase().replace(/\./g, ""))
+            .filter((v) => ["JR", "SR", "II", "III", "IV"].includes(v));
+        };
 
-          const activeSuffixes = parseSuffixes(record.suffix);
+        const activeSuffixes = parseSuffixes(record.suffix);
 
-          if (activeSuffixes.includes("JR")) {
-            const field = coords.suffix_jr || { x: 414, y: 706 };
-            firstPage.drawCircle({
-              x: field.x,
-              y: field.y,
-              size: 7,
-              borderColor: bluePenColor,
-              borderWidth: 1.5,
-            });
-          }
-          if (activeSuffixes.includes("SR")) {
-            const field = coords.suffix_sr || { x: 432, y: 706 };
-            firstPage.drawCircle({
-              x: field.x,
-              y: field.y,
-              size: 7,
-              borderColor: bluePenColor,
-              borderWidth: 1.5,
-            });
-          }
-          if (activeSuffixes.includes("III")) {
-            const field = coords.suffix_iii || { x: 462, y: 706 };
-            firstPage.drawCircle({
-              x: field.x,
-              y: field.y,
-              size: 7,
-              borderColor: bluePenColor,
-              borderWidth: 1.5,
-            });
-          }
-          if (activeSuffixes.includes("IV")) {
-            const field = coords.suffix_iv || { x: 480, y: 706 };
-            firstPage.drawCircle({
-              x: field.x,
-              y: field.y,
-              size: 7,
-              borderColor: bluePenColor,
-              borderWidth: 1.5,
-            });
-          }
+        if (activeSuffixes.includes("JR") && coords.suffix_jr) {
+          const field = coords.suffix_jr;
+          firstPage.drawCircle({
+            x: field.x,
+            y: field.y,
+            size: 7,
+            borderColor: bluePenColor,
+            borderWidth: 1.5,
+          });
+        }
+        if (activeSuffixes.includes("SR") && coords.suffix_sr) {
+          const field = coords.suffix_sr;
+          firstPage.drawCircle({
+            x: field.x,
+            y: field.y,
+            size: 7,
+            borderColor: bluePenColor,
+            borderWidth: 1.5,
+          });
+        }
+        if (activeSuffixes.includes("II") && coords.suffix_ii) {
+          const field = coords.suffix_ii;
+          firstPage.drawCircle({
+            x: field.x,
+            y: field.y,
+            size: 7,
+            borderColor: bluePenColor,
+            borderWidth: 1.5,
+          });
+        }
+        if (activeSuffixes.includes("III") && coords.suffix_iii) {
+          const field = coords.suffix_iii;
+          firstPage.drawCircle({
+            x: field.x,
+            y: field.y,
+            size: 7,
+            borderColor: bluePenColor,
+            borderWidth: 1.5,
+          });
+        }
+        if (activeSuffixes.includes("IV") && coords.suffix_iv) {
+          const field = coords.suffix_iv;
+          firstPage.drawCircle({
+            x: field.x,
+            y: field.y,
+            size: 7,
+            borderColor: bluePenColor,
+            borderWidth: 1.5,
+          });
         }
 
         // Specialized Checkbox Logic: Section 4 / Section 6 - Same as Above

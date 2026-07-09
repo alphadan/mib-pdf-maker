@@ -70,24 +70,25 @@ graph TD
 
 ## 📁 4. Required CSV Schema & Database Mapping
 
-Rather than forcing a rigid, monolithic 19-column spreadsheet layout, the Pennsylvania Ballot Application Suite uses a **Dynamic Context-Aware Schema Engine** (`src/utils/csvSchema.ts`) that adjusts required columns according to the active workspace tab.
+The Pennsylvania Ballot Application Suite uses an advanced **Dynamic Context-Aware Schema Engine** (`src/utils/csvSchema.ts`) that matches the exact column definitions and color codes of your spreadsheet model.
 
-### Schema Requirement Tiers
+### Database Requirement Tiers
 
-1. **Universal Core (Mandatory on ALL Uploads):**
-   * Identifies the voter's identity and active residential address:
-   * Headers: `First_Name`, `Last_Name`, `Date_Of_Birth`, `House__`, `StreetNameComplete`, `City`, `State`, `Zip_Code`
-2. **Reason-Specific Requirements (Validated Contextually):**
-   * Enforced strictly depending on the selected workspace action:
-     * **`new-registration`** & **`party-change`**: `RNCfiles.OfficialParty`
-     * **`address-change`** & **`new-movers`**: `Prev_Address`, `Prev_City`, `Prev_State`, `Prev_Zip`
-     * **`name-change`**: `Prev_Name`
-3. **Fully Optional Fields (Never Cause Errors):**
-   * Can be completely omitted from your uploaded files:
-   * Headers: `Middle_Name`, `Suffix`, `Apt__`, `MAddress_Line_1`, `MAddress_Line_2`, `MCity`, `MState`, `MZip_Code`, `Ward`, `Precinct`, `County`, `Sex`, `VBM.AppType`, `RNCfiles.PrimaryPhone`, `Voter_Status`.
+1. **🟢 Universal Core (Green Columns - Mandatory on ALL Uploads):**
+   * Verifies voter's primary identity and residential residence:
+   * Headers: `First_Name`, `Middle_Name`, `Last_Name`, `Suffix`, `House`, `Street`, `City`, `Zip_Code`, `County`, `Birth_Date`
+2. **🔵 Optional Helpers (Blue Columns - Never Trigger Error Blocks):**
+   * Helpful metadata parsed cleanly with safe fallback lookups if empty:
+   * Headers: `Precinct`, `Phone`, `Email`, `Municipality`, `Ward`, `Lived_Since`, `MAddress`, `MCity`, `MState`, `MZip`
+3. **🟡 Reason-Specific Context (Yellow Columns - Checked Contextually):**
+   * Strictly checked and required depending on what tab you are on:
+     * **Mail-In (`mail-in-voting`)**: `Mib_Address`, `Mib_City`, `Mib_State`, `Mib_Zip` (ballot papers delivery destination)
+     * **New Registration (`new-registration`) / Change Party (`party-change`) / Federal (`federal-military`)**: `Reason`, `Citizen`, `Age`, `Gender`, `Party`
+     * **Change of Name (`name-change`)**: `Reason`, `Citizen`, `Age`, `Gender`, `Party`, `Prev_Name`
+     * **Change of Address (`address-change`) / New Movers (`new-movers`)**: `Reason`, `Citizen`, `Age`, `Gender`, `Party`, `Prev_Address`
 
 ### Automated Template Assembler (In-Memory Downloads)
-The suite dynamically generates templates on-the-fly. Clicking **"Download Sample CSV"** runs an in-memory compiler that stitches together the exact universal and specific headers required for the selected action, appends useful optional columns, creates a sample mock row, and triggers a download. This eliminates the maintenance of separate static file resources.
+The suite dynamically generates templates on-the-fly. Clicking **"Download Sample CSV"** runs an in-memory compiler that stitches together the exact universal and specific headers required for the selected action, appends useful optional columns, creates a sample mock row, and triggers a download. This maintains your exact spreadsheet column layout order and eliminates the maintenance of separate static file resources.
 
 ### Coordinate baselines mapped from your actual dataset:
 
