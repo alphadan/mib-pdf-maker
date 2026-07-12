@@ -90,6 +90,12 @@ The Pennsylvania Ballot Application Suite uses an advanced **Dynamic Context-Awa
 ### Automated Template Assembler (In-Memory Downloads)
 The suite dynamically generates templates on-the-fly. Clicking **"Download Sample CSV"** runs an in-memory compiler that stitches together the exact universal and specific headers required for the selected action, appends useful optional columns, creates a sample mock row, and triggers a download. This maintains your exact spreadsheet column layout order and eliminates the maintenance of separate static file resources.
 
+### In-Browser Silent Excel Conversion (.xlsx / .xls)
+To ensure maximum workflow flexibility, the CSV parser supports direct Excel binary workbook ingestion:
+* **Binary Ingest:** The browser reads `.xlsx`/`.xls` bytes as a binary ArrayBuffer.
+* **SheetJS Integration:** Integrates `xlsx` (SheetJS) to compile worksheets purely client-side.
+* **First Worksheet Tab Target:** Resolves `workbook.SheetNames[0]` as the design target sheet. This silently extracts only the leftmost worksheet, disregarding additional worksheets or text tab names, and outputs a flat CSV string that is routed directly to `papaparse`.
+
 ### Coordinate baselines mapped from your actual dataset:
 
 | CSV Column Name | Internal Key | Page Index | Coordinate (X, Y) | Target Field Section |

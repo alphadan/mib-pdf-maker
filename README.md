@@ -10,7 +10,7 @@ The PA Ballot Application Suite enables county election offices, voter outreach 
 
 Voter databases contain critical Personally Identifiable Information (PII) like names, phone numbers, birthdates, and residential addresses. This application is engineered with a **Zero-Server storage and processing model**:
 
-1. **Local Parsing**: The uploaded CSV spreadsheet is parsed directly inside the browser using `papaparse`.
+1. **Local In-Browser Parsing**: Uploaded CSV files or Excel workbooks (`.xlsx` / `.xls`) are parsed locally inside the browser memory using `papaparse` and `xlsx` (SheetJS). No server conversions, network leaks, or third-party storage.
 2. **Local PDF Overlay**: Modifying and pre-filling the official PDF templates is done directly in the browser using `pdf-lib`.
 3. **No Remote Uploads**: **No voter data is ever sent over the network, saved on a database, or stored on a server.** Once you close the browser tab, all session data is permanently erased.
 4. **Client-Side DoS Protection**: Safety limiters automatically reject files larger than **5MB** or containing more than **500 records** to protect browser memory performance.
@@ -32,7 +32,7 @@ The application features a modern **Top-Level Left Menu Sidebar** that organizes
 * **Federal / Military Move:** Pre-fills registrations for federal/military employees out-of-state. Loads the 2-page registration template.
 
 ### 🔄 2. Core Capabilities within Each Workspace
-* **CSV Bulk Upload Center:** Drag-and-drop ingestion of voter spreadsheets with dynamic required header checking and schema validation.
+* **Voter Spreadsheet Upload Center:** Drag-and-drop ingestion of voter databases in standard `.csv` or direct Excel `.xlsx`/`.xls` formats with dynamic, tab-aware required header validation.
 * **Consolidated Batch Compilation:** Merges hundreds of voter forms and prints them into a single, multi-page consolidated PDF download. Supports multi-page forms seamlessly!
 * **📝 Single Manual Form Pre-Filler:** A lightweight, custom-associated manual form allowing organizers to pre-fill individual voter registrations on the spot.
 * **Privacy Toggle Checklist:** A sidebar option to exclude sensitive values like **Date of Birth** and **Phone Number** from being pre-filled on printed PDFs by default to safeguard voter privacy.
@@ -114,6 +114,11 @@ The engine strictly validates and requires these headers **only** when performin
 
 ### 💾 4. In-Memory Dynamic CSV Template Downloader
 We have eliminated static template CSV files. When you click **"Download Sample CSV"** inside any workspace, the system automatically compiles a perfectly tailored CSV template containing exactly the required headers, optional helper columns, and a pre-filled sample row representing the active workflow, maintaining your exact spreadsheet column layout order.
+
+### 📊 5. Silent Excel to CSV Conversion (.xlsx / .xls)
+To save your team time, the uploader silently translates Excel workbooks directly inside browser memory:
+* **No Manual Cleanups Required:** You can upload workbooks containing multiple sheet tabs safely. The parser automatically grabs the **first (leftmost) tab** of your file and ignores other auxiliary sheets.
+* **No Worksheet Renaming:** Worksheet tab labels can be named anything (e.g. `Sheet1` or `Movers List`); the engine only relies on worksheet index `0`.
 
 ### Automated PDF Formatting Rules:
 * **Resident State Prefill Bypass:** Since the Pennsylvania application is a state-specific form, the state code `'PA'` is pre-printed on the template. The system skips drawing the `state` text to avoid messy overlaps but retains it in your CSV/Interfaces.

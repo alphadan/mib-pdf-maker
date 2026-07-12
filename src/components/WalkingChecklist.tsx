@@ -81,21 +81,21 @@ export default function WalkingChecklist({
                 </td>
                 <td className="px-4 py-2 font-medium text-slate-700">
                   {r.address} {r.suite_number ? `#${r.suite_number}` : ""},{" "}
-                  {r.city}, {r.state} {r.zip_code}
+                  {r.city}, PA {r.zip_code}
                 </td>
-                <td className="px-4 py-2">{r["RNCfiles.Age"] || "N/A"}</td>
+                <td className="px-4 py-2">{r.Age || r["RNCfiles.Age"] || r.age || "N/A"}</td>
                 <td className="px-4 py-2 font-medium">{r.sex || "N/A"}</td>
                 <td className="px-4 py-2">
                   <span
                     className={`px-2.5 py-0.5 rounded text-[10px] font-bold border ${
-                      getPartyInitial(r["RNCfiles.OfficialParty"]) === "D"
+                      getPartyInitial(r.party_choice || r["RNCfiles.OfficialParty"]) === "D"
                         ? "bg-blue-50 border-blue-100 text-blue-700"
-                        : getPartyInitial(r["RNCfiles.OfficialParty"]) === "R"
+                        : getPartyInitial(r.party_choice || r["RNCfiles.OfficialParty"]) === "R"
                           ? "bg-red-50 border-red-100 text-red-700"
                           : "bg-slate-50 border-slate-100 text-slate-600"
                     }`}
                   >
-                    {getPartyInitial(r["RNCfiles.OfficialParty"])}
+                    {getPartyInitial(r.party_choice || r["RNCfiles.OfficialParty"])}
                   </span>
                 </td>
                 <td className="px-4 py-2">

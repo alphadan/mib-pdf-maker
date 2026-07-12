@@ -32,9 +32,9 @@ export default function CsvUploadCenter({
           <Upload className="h-8 w-8" />
         </div>
 
-        <h4 className="text-slate-900 font-bold text-base">Drag & Drop Your Voter CSV</h4>
+        <h4 className="text-slate-900 font-bold text-base">Drag & Drop Your Voter CSV or Excel</h4>
         <p className="text-slate-500 text-xs mt-1 max-w-xs leading-relaxed">
-          Supports <code>.csv</code> spreadsheet format. Auto schema verification inside browser.
+          Supports <code>.csv</code> and <code>.xlsx</code> spreadsheet formats. Auto schema verification inside browser.
         </p>
 
         <div className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors shadow-sm">
@@ -45,7 +45,7 @@ export default function CsvUploadCenter({
           id="voter-csv-upload"
           ref={fileInputRef}
           type="file"
-          accept=".csv, text/csv, application/csv, application/vnd.ms-excel"
+          accept=".csv, text/csv, application/csv, application/vnd.ms-excel, .xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, .xls"
           className="hidden"
           onChange={(e) => {
             if (e.target.files?.[0]) {

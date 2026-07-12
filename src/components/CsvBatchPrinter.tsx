@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import Papa from "papaparse";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
+import * as XLSX from "xlsx";
 import {
   FileSpreadsheet,
   CheckCircle2,
@@ -56,17 +57,14 @@ const getPartyInitial = (partyVal: any): string => {
   ) {
     return "NF";
   }
-  if (cleanParty.startsWith("dem") || cleanParty === "d") {
+  // Test what character the value begins with (R, D, I, G, L)
+  if (cleanParty.startsWith("d")) {
     return "D";
   }
-  if (cleanParty.startsWith("rep") || cleanParty === "r") {
+  if (cleanParty.startsWith("r")) {
     return "R";
   }
-  if (
-    cleanParty.startsWith("ind") ||
-    cleanParty === "i" ||
-    cleanParty.startsWith("una")
-  ) {
+  if (cleanParty.startsWith("i") || cleanParty.startsWith("u")) {
     return "I";
   }
   if (cleanParty.startsWith("g")) {
@@ -122,9 +120,10 @@ export default function CsvBatchPrinter({
     setMissingHeaders([]);
     setRecords([]);
 
-    if (!file.name.endsWith(".csv")) {
+    const isExcel = file.name.endsWith(".xlsx") || file.name.endsWith(".xls");
+    if (!file.name.endsWith(".csv") && !isExcel) {
       setValidationError(
-        "Invalid file format. Please upload a spreadsheet with a .csv extension.",
+        "Invalid file format. Please upload a spreadsheet with a .csv or .xlsx extension.",
       );
       return;
     }
@@ -133,14 +132,15 @@ export default function CsvBatchPrinter({
     const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
     if (file.size > MAX_FILE_SIZE_BYTES) {
       setValidationError(
-        `File size limit exceeded. To protect system performance, the maximum CSV size allowed is 5MB. Your file is ${(file.size / (1024 * 1024)).toFixed(1)}MB.`,
+        `File size limit exceeded. To protect system performance, the maximum spreadsheet size allowed is 5MB. Your file is ${(file.size / (1024 * 1024)).toFixed(1)}MB.`,
       );
       return;
     }
 
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
+    const parseCsvStringOrFile = (input: File | string) => {
+      Papa.parse(input as any, {
+        header: true,
+        skipEmptyLines: true,
       complete: (results) => {
         const headers = results.meta.fields || [];
 
@@ -180,19 +180,19 @@ export default function CsvBatchPrinter({
             first_name: record.First_Name || record.first_name || "",
             middle_name: record.Middle_Name || record.middle_name || "",
             birthdate:
-              record.Birth_Date ||
               record.Date_Of_Birth ||
+              record.Birth_Date ||
               record.birthdate ||
               record.Date_of_Birth ||
               "",
             phone:
-              record.Phone ||
               record["RNCfiles.PrimaryPhone"] ||
+              record.Phone ||
               record.phone ||
               record.PrimaryPhone ||
               "",
             email: record.Email || record.email || "",
-            sex: record.Sex || record.sex || record.Gender || "",
+            sex: record.Gender || record.Sex || record.sex || "",
             suite_number:
               record.Apt__ ||
               record.suite_number ||
@@ -220,11 +220,11 @@ export default function CsvBatchPrinter({
               return found ? found.municipality : "";
             })(),
             household_party:
-              record.householdParty || record.household_party || "",
+              record["RNCfiles.HouseholdParty"] || record.HHParty || record.householdParty || record.household_party || "",
 
             // Construct virtual compound fields for overlaying
             address:
-              `${record.House || record.House__ || record.house_number || ""} ${record.Street || record.StreetNameComplete || record.street_name || ""}`.trim(),
+              `${record.House__ || record.House || record.house_number || ""} ${record.StreetNameComplete || record.Street || record.street_name || ""}`.trim(),
             
             // Map mailing address variables contextually
             mailing_address: appReason === "mail-in-voting"
@@ -254,21 +254,29 @@ export default function CsvBatchPrinter({
 
             // Reason-specific fallback mappings
             is_citizen: record.Citizen || record.is_citizen || record.Is_Citizen || "yes",
-            is_at_least_18:
-              record.Age || record.is_at_least_18 || record.Is_At_Least_18 || "yes",
+            is_at_least_18: (() => {
+              const ageVal = String(record["RNCfiles.Age"] || record.Age || record.is_at_least_18 || "").trim().toLowerCase();
+              if (!ageVal) return "yes"; // Default to yes
+              if (ageVal === "no" || ageVal === "false" || ageVal === "n") return "no";
+              const num = parseInt(ageVal);
+              if (!isNaN(num)) {
+                return num >= 18 ? "yes" : "no";
+              }
+              return "yes";
+            })(),
             gender: record.Gender || record.Sex || record.sex || record.gender || "",
             party_choice:
-              record.Party ||
               record["RNCfiles.OfficialParty"] ||
+              record.Party ||
               record.party_choice ||
               record.Party_Choice ||
               "",
-            prev_name: record.Prev_Name || record.prev_name || record.Prev_Name || "",
-            prev_address: record.Prev_Address || record.prev_address || record.Prev_Address || "",
-            prev_city: record.Prev_City || record.prev_city || record.Prev_City || "",
-            prev_state: record.Prev_State || record.prev_state || record.Prev_State || "",
-            prev_zip: record.Prev_Zip || record.prev_zip || record.Prev_Zip || "",
-            prev_county: record.Prev_County || record.prev_county || record.Prev_County || "",
+            prev_name: record.Prev_Name || record.prev_name || "",
+            prev_address: record.Prev_Address || record.prev_address || "",
+            prev_city: record.Prev_City || record.prev_city || "",
+            prev_state: record.Prev_State || record.prev_state || "",
+            prev_zip: record.Prev_Zip || record.prev_zip || "",
+            prev_county: record.Prev_County || record.prev_county || "",
           };
         });
 
@@ -316,11 +324,29 @@ export default function CsvBatchPrinter({
         setCurrentPage(1);
         setActiveTab("preview");
       },
-      error: (err) => {
-        setValidationError(`Failed to parse CSV: ${err.message}`);
-      },
     });
   };
+
+  if (isExcel) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const arrayBuffer = e.target?.result as ArrayBuffer;
+        const data = new Uint8Array(arrayBuffer);
+        const workbook = XLSX.read(data, { type: "array" });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const csvString = XLSX.utils.sheet_to_csv(worksheet);
+        parseCsvStringOrFile(csvString);
+      } catch (err: any) {
+        setValidationError(`Failed to parse Excel workbook: ${err.message}`);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    parseCsvStringOrFile(file);
+  }
+};
 
   const downloadSampleCSV = () => {
     const TEMPLATE_FILENAMES: Record<string, string> = {
@@ -525,14 +551,16 @@ export default function CsvBatchPrinter({
             .substring(0, 24);
 
         // Full Address: House, Street, Apt, City, State Zip
+        const aptPart = r.suite_number ? `#${r.suite_number}` : "";
         const fullAddress =
-          `${r.House__ || ""} ${r.StreetNameComplete || ""} ${r.Apt__ ? "#" + r.Apt__ : ""}, ${r.City || ""}, ${r.State || ""} ${r.Zip_Code || ""}`
+          `${r.address || ""} ${aptPart}, ${r.city || r.City || ""}, PA ${r.zip_code || r.Zip_Code || ""}`
+            .replace(/\s+/g, " ")
             .trim()
-            .substring(0, 60); // Landscape allows longer addresses!
+            .substring(0, 60);
 
-        const age = String(r["RNCfiles.Age"] || "N/A");
+        const age = String(r.Age || r["RNCfiles.Age"] || r.age || "N/A");
         const sex = String(r.Sex || r.sex || "N/A").substring(0, 1); // Compact sex symbol
-        const party = getPartyInitial(r["RNCfiles.OfficialParty"]);
+        const party = getPartyInitial(r.party_choice || r["RNCfiles.OfficialParty"]);
         const hhParty = String(r.household_party || "N/A").substring(0, 18);
         const precinctVal = String(r.Precinct || "N/A").substring(0, 10);
 

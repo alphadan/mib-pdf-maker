@@ -44,6 +44,8 @@ To prevent pre-filled voter data from shifting off-target on official templates,
 
 The PA Ballot Application Suite uses a **Dynamic, Context-Aware Schema Validation Engine**. Rather than forcing a rigid 19-column list for all tasks, the application checks for required fields depending on the active menu tab.
 
+> 💡 **Excel Support (.xlsx / .xls)**: You can now upload Excel files directly! The system silently converts them in browser memory. Just ensure your active voter dataset is on the **first (leftmost) tab** of your workbook.
+
 ### Schema Field Classifications
 
 | Column Header Name | Field Type / Color | Required Tab Context | Purpose & Core Mapping |
@@ -52,12 +54,12 @@ The PA Ballot Application Suite uses a **Dynamic, Context-Aware Schema Validatio
 | **Middle_Name** | 🟢 Universal (Green) | **ALL Tabs** | Voter's middle name or initial |
 | **Last_Name** | 🟢 Universal (Green) | **ALL Tabs** | Voter's last name |
 | **Suffix** | 🟢 Universal (Green) | **ALL Tabs** | Suffix (JR, SR, II, III, IV draws circle bubble) |
-| **House** | 🟢 Universal (Green) | **ALL Tabs** | House number of residence |
-| **Street** | 🟢 Universal (Green) | **ALL Tabs** | Street name of residence |
+| **House__** | 🟢 Universal (Green) | **ALL Tabs** | House number of residence |
+| **StreetNameComplete** | 🟢 Universal (Green) | **ALL Tabs** | Street name of residence |
 | **City** | 🟢 Universal (Green) | **ALL Tabs** | Registered city or town |
 | **Zip_Code** | 🟢 Universal (Green) | **ALL Tabs** | Registered ZIP code |
 | **County** | 🟢 Universal (Green) | **ALL Tabs** | Registered county (resolves numeric codes) |
-| **Birth_Date** | 🟢 Universal (Green) | **ALL Tabs** | Voter date of birth (MM/DD/YYYY) |
+| **RNCfiles.HouseholdParty** | 🟢 Universal (Green) | **ALL Tabs** | Household party identifier (labeled as HHParty on walk list) |
 | **Precinct** | 🔵 Optional (Blue) | *Optional* | Precinct district code (used for walking list) |
 | **Phone** | 🔵 Optional (Blue) | *Optional* | Phone number (optional pre-fill fallback) |
 | **Email** | 🔵 Optional (Blue) | *Optional* | Contact email address |
@@ -68,11 +70,12 @@ The PA Ballot Application Suite uses a **Dynamic, Context-Aware Schema Validatio
 | **MCity** | 🔵 Optional (Blue) | *Optional* | Alternate mailing city |
 | **MState** | 🔵 Optional (Blue) | *Optional* | Alternate mailing state code |
 | **MZip** | 🔵 Optional (Blue) | *Optional* | Alternate mailing ZIP code |
-| **Reason** | 🟡 Reason-Specific (Yellow) | Registration Forms | Checks Section 3 Application Reason checkbox |
-| **Citizen** | 🟡 Reason-Specific (Yellow) | Registration Forms | Section 2 Citizenship yes/no checkboxes |
-| **Age** | 🟡 Reason-Specific (Yellow) | Registration Forms | Section 2 Voting Age 18+ yes/no checkboxes |
+| **Date_Of_Birth** | 🔵 Optional (Blue) | *Optional* | Voter date of birth (MM/DD/YYYY) (not universal/required) |
+| **Reason** | 🟡 Reason-Specific (Yellow) | Registration Forms | Sec. 3 Application Reason (determined dynamically from active tab) |
+| **Citizen** | 🟡 Reason-Specific (Yellow) | Registration Forms | Section 2 Citizenship yes/no checkboxes (cardinality is true) |
+| **RNCfiles.Age** | 🟡 Reason-Specific (Yellow) | Registration Forms | Section 2 Voting Age 18+ checkboxes & numeric age for walk list |
 | **Gender** | 🟡 Reason-Specific (Yellow) | Registration Forms | Section 4 Gender/Sex checkboxes |
-| **Party** | 🟡 Reason-Specific (Yellow) | Registration Forms | Section 8 Political Party Choice checkbox |
+| **RNCfiles.OfficialParty** | 🟡 Reason-Specific (Yellow) | Registration Forms | Sec. 8 Political Party (Hardcoded to select 'Republican' on form) |
 | **Prev_Name** | 🟡 Reason-Specific (Yellow) | **Change of Name** | Section 9 previous registered name |
 | **Prev_Address** | 🟡 Reason-Specific (Yellow) | **Address/Movers** | Section 9 previous street address |
 | **Mib_Address** | 🟡 Reason-Specific (Yellow) | **Mail-In Only** | Delivery street address for mail-in ballots |
@@ -355,6 +358,13 @@ Official ballot applications are designed to be printed **double-sided** so that
               Instead of rejecting spreadsheets due to irrelevant missing headers, the engine validates columns contextually based on the active tab workflow. Columns are categorized into three requirement levels:
             </p>
 
+            <div className="bg-blue-50/50 border border-blue-150 p-4 rounded-xl flex items-start gap-3 mt-2 select-text">
+              <span className="text-base">💡</span>
+              <div className="text-[11px] text-blue-800 leading-relaxed">
+                <span className="font-bold">Direct Excel Support (.xlsx / .xls):</span> You can upload Excel files directly! The system silently and securely converts them to CSV inside your browser's memory using SheetJS. Please make sure that your active voter database is located on the <span className="font-bold underline">first (leftmost) tab</span> of the uploaded workbook.
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
               <div className="bg-emerald-50/50 border border-emerald-100 p-4 rounded-xl">
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
@@ -405,12 +415,12 @@ Official ballot applications are designed to be printed **double-sided** so that
                       { name: "Middle_Name", type: "Universal (Green)", style: "bg-emerald-50 text-emerald-800 border-emerald-100", context: "ALL tabs", desc: "Middle name or initial" },
                       { name: "Last_Name", type: "Universal (Green)", style: "bg-emerald-50 text-emerald-800 border-emerald-100", context: "ALL tabs", desc: "Last name of the applicant" },
                       { name: "Suffix", type: "Universal (Green)", style: "bg-emerald-50 text-emerald-800 border-emerald-100", context: "ALL tabs", desc: "Suffix (JR, SR, II, III, IV draws vector bubble)" },
-                      { name: "House", type: "Universal (Green)", style: "bg-emerald-50 text-emerald-800 border-emerald-100", context: "ALL tabs", desc: "House/Residence number (e.g. 123)" },
-                      { name: "Street", type: "Universal (Green)", style: "bg-emerald-50 text-emerald-800 border-emerald-100", context: "ALL tabs", desc: "Street name complette (e.g. Main St)" },
+                      { name: "House__", type: "Universal (Green)", style: "bg-emerald-50 text-emerald-800 border-emerald-100", context: "ALL tabs", desc: "House/Residence number (e.g. 123)" },
+                      { name: "StreetNameComplete", type: "Universal (Green)", style: "bg-emerald-50 text-emerald-800 border-emerald-100", context: "ALL tabs", desc: "Street name complette (e.g. Main St)" },
                       { name: "City", type: "Universal (Green)", style: "bg-emerald-50 text-emerald-800 border-emerald-100", context: "ALL tabs", desc: "Registered city of residence" },
                       { name: "Zip_Code", type: "Universal (Green)", style: "bg-emerald-50 text-emerald-800 border-emerald-100", context: "ALL tabs", desc: "ZIP code of registration" },
                       { name: "County", type: "Universal (Green)", style: "bg-emerald-50 text-emerald-800 border-emerald-100", context: "ALL tabs", desc: "County of registration (auto-resolves numeric codes)" },
-                      { name: "Birth_Date", type: "Universal (Green)", style: "bg-emerald-50 text-emerald-800 border-emerald-100", context: "ALL tabs", desc: "Date of Birth (MM/DD/YYYY)" },
+                      { name: "RNCfiles.HouseholdParty", type: "Universal (Green)", style: "bg-emerald-50 text-emerald-800 border-emerald-100", context: "ALL tabs", desc: "Household party (labeled as HHParty on walk list)" },
                     ].map((row, idx) => (
                       <tr key={idx} className="hover:bg-slate-50/50">
                         <td className="px-4 py-2.5 font-bold font-mono text-slate-800">{row.name}</td>
@@ -434,6 +444,7 @@ Official ballot applications are designed to be printed **double-sided** so that
                       { name: "MCity", type: "Optional (Blue)", style: "bg-blue-50 text-blue-800 border-blue-100", context: "Optional", desc: "Alternate mailing city" },
                       { name: "MState", type: "Optional (Blue)", style: "bg-blue-50 text-blue-800 border-blue-100", context: "Optional", desc: "Alternate mailing state" },
                       { name: "MZip", type: "Optional (Blue)", style: "bg-blue-50 text-blue-800 border-blue-100", context: "Optional", desc: "Alternate mailing ZIP code" },
+                      { name: "Date_Of_Birth", type: "Optional (Blue)", style: "bg-blue-50 text-blue-800 border-blue-100", context: "Optional", desc: "Voter date of birth (MM/DD/YYYY) (not universal or required)" },
                     ].map((row, idx) => (
                       <tr key={idx} className="hover:bg-slate-50/50">
                         <td className="px-4 py-2.5 font-bold font-mono text-slate-800">{row.name}</td>
@@ -447,11 +458,11 @@ Official ballot applications are designed to be printed **double-sided** so that
 
                     {/* REASON-SPECIFIC (YELLOW) */}
                     {[
-                      { name: "Reason", type: "Reason-Specific (Yellow)", style: "bg-amber-50 text-amber-800 border-amber-100", context: "Registration Forms", desc: "Toggles Section 3 Registration Reason check" },
-                      { name: "Citizen", type: "Reason-Specific (Yellow)", style: "bg-amber-50 text-amber-800 border-amber-100", context: "Registration Forms", desc: "Toggles Section 2 US Citizenship yes/no checkboxes" },
-                      { name: "Age", type: "Reason-Specific (Yellow)", style: "bg-amber-50 text-amber-800 border-amber-100", context: "Registration Forms", desc: "Toggles Section 2 Voting Age 18+ yes/no checkboxes" },
-                      { name: "Gender", type: "Reason-Specific (Yellow)", style: "bg-amber-50 text-amber-800 border-amber-100", context: "Registration Forms", desc: "Toggles Section 4 Gender/Sex checkboxes" },
-                      { name: "Party", type: "Reason-Specific (Yellow)", style: "bg-amber-50 text-amber-800 border-amber-100", context: "Registration Forms", desc: "Toggles Section 8 Political Party checkboxes" },
+                      { name: "Reason", type: "Reason-Specific (Yellow)", style: "bg-amber-50 text-amber-800 border-amber-100", context: "Registration Forms", desc: "Sec. 3 Application Reason (determined dynamically from active tab)" },
+                      { name: "Citizen", type: "Reason-Specific (Yellow)", style: "bg-amber-50 text-amber-800 border-amber-100", context: "Registration Forms", desc: "Section 2 US Citizenship yes/no checkboxes (cardinality is true)" },
+                      { name: "RNCfiles.Age", type: "Reason-Specific (Yellow)", style: "bg-amber-50 text-amber-800 border-amber-100", context: "Registration Forms", desc: "Section 2 Voting Age 18+ checkboxes & numeric age for walk list" },
+                      { name: "Gender", type: "Reason-Specific (Yellow)", style: "bg-amber-50 text-amber-800 border-amber-100", context: "Registration Forms", desc: "Section 4 Gender/Sex checkboxes" },
+                      { name: "RNCfiles.OfficialParty", type: "Reason-Specific (Yellow)", style: "bg-amber-50 text-amber-800 border-amber-100", context: "Registration Forms", desc: "Sec. 8 Political Party selection (Hardcoded to check the 'Republican' bubble on the printed form)" },
                       { name: "Prev_Name", type: "Reason-Specific (Yellow)", style: "bg-amber-50 text-amber-800 border-amber-100", context: "Change Name Only", desc: "Fills out Section 9 Previous Registered Name" },
                       { name: "Prev_Address", type: "Reason-Specific (Yellow)", style: "bg-amber-50 text-amber-800 border-amber-100", context: "Address & New Movers", desc: "Fills out Section 9 Previous Residential Address" },
                       { name: "Mib_Address", type: "Reason-Specific (Yellow)", style: "bg-amber-50 text-amber-800 border-amber-100", context: "Mail-In Ballot Only", desc: "Target delivery street for mail-in ballot papers" },

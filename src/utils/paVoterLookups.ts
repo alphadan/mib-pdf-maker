@@ -79,37 +79,6 @@ export const PA_COUNTIES_DICT: Record<string, string> = {
   "68": "NA",
 };
 
-// Common municipality lookup map
-export const PA_MUNICIPALITIES_DICT: Record<string, string> = {
-  // Chester County Municipalities
-  //
-  "1": "ATGLEN",
-  "01": "ATGLEN",
-  "21": "EAST FALLOWFIELD TWP",
-  "22": "WEST FALLOWFIELD TWP",
-  "26": "HIGHLAND TWP",
-  "48": "PARKESBURG",
-  "55": "SADSBURY TWP",
-  "56": "WEST SADSBURY TWP",
-
-  "0920": "West Chester Borough",
-  "920": "West Chester Borough",
-  "0482": "Atglen Borough",
-  "482": "Atglen Borough",
-
-  // Montgomery County Municipalities
-  "0810": "Norristown Borough",
-  "810": "Norristown Borough",
-
-  // Berks County Municipalities
-  "1110": "Reading City",
-  "111": "Reading City",
-
-  // Delaware County Municipalities
-  "1220": "Media Borough",
-  "122": "Media Borough",
-};
-
 /**
  * Resolves a county string or number to its clean PA County Name.
  * If not found in the dictionary, returns the original trimmed value.
@@ -123,22 +92,4 @@ export const resolveCounty = (val: any): string => {
     paddedVal = "0" + cleanVal;
   }
   return PA_COUNTIES_DICT[paddedVal] || PA_COUNTIES_DICT[cleanVal] || cleanVal;
-};
-
-/**
- * Resolves a municipality code number to its legal municipality name string.
- * Returns the original trimmed value if not found in the dictionary.
- */
-export const resolveMunicipality = (val: any): string => {
-  if (val === null || val === undefined) return "";
-  const cleanVal = String(val).trim();
-  let paddedVal = cleanVal;
-  if (/^\d{3}$/.test(cleanVal)) {
-    paddedVal = "0" + cleanVal;
-  }
-  return (
-    PA_MUNICIPALITIES_DICT[paddedVal] ||
-    PA_MUNICIPALITIES_DICT[cleanVal] ||
-    cleanVal
-  );
 };

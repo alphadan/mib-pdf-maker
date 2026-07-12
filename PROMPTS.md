@@ -72,6 +72,7 @@ The importer maps raw CSV record values to unified schema-wide attributes using 
 19. **Annual Request Toggle:** For tab `new-movers` (always hardcoded to `"yes"`). For other tabs, checks if `VBM.AppType` or `annual_request` contains `"annual"` or `"yes"`.
 20. **Previous Registration Overrides:** Maps `prev_name` from `Prev_Name` / `prev_name`, and maps `prev_address` / `prev_city` / `prev_state` / `prev_zip` from both upper/lowercase variants.
 21. **Dynamic Municipalities:** Automatically derived by looking up numerical `Precinct` inside `src/utils/precincts.json`. (Omit manual municipality inputs if Precinct is supplied).
+22. **Silent Excel Parser:** Integrates SheetJS (`xlsx`) to automatically parse and extract `.xlsx`/`.xls` binary spreadsheets in browser memory. It targets index `0` (the first leftmost worksheet tab) of any workbook, ignoring other sheets and sheet text names, and compiles a CSV text string dynamically for the ingestion pipeline.
 
 ---
 
