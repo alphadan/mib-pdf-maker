@@ -120,10 +120,11 @@ export default function CsvBatchPrinter({
     setMissingHeaders([]);
     setRecords([]);
 
+    const fileExtension = file.name.includes(".") ? file.name.split(".").pop() : "unknown";
     const isExcel = file.name.endsWith(".xlsx") || file.name.endsWith(".xls");
     if (!file.name.endsWith(".csv") && !isExcel) {
       setValidationError(
-        "Invalid file format. Please upload a spreadsheet with a .csv or .xlsx extension.",
+        `Invalid file format: detected a .${fileExtension} file. You uploaded "${file.name}", but the suite requires spreadsheets to be in either a .csv or .xlsx format.`
       );
       return;
     }
@@ -205,7 +206,7 @@ export default function CsvBatchPrinter({
             precinct: record.Precinct || record.precinct || "",
             ward: record.Ward || record.ward || "",
             lived_since: record.Lived_Since || record.lived_since || "",
-            county: resolveCounty(record.County || record.county),
+            county: resolveCounty(record.County || record.county || "15"),
             municipality: record.Municipality || record.municipality || (() => {
               const precinctVal = String(
                 record.Precinct || record.precinct || "",

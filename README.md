@@ -89,15 +89,15 @@ npm run build && npx firebase deploy --only hosting
 The suite features an advanced **Dynamic Context-Aware CSV Schema Engine** designed to prevent user friction. Instead of forcing a monolithic spreadsheet format for all tasks, the application dynamically adjusts required columns based on the selected menu tab, aligning with your exact database attributes:
 
 ### 🟢 1. Universal Core (Green Columns - Mandatory on ALL Uploads)
-These core columns identify the voter's primary identity and residential registration address. They must exist on all uploaded spreadsheets:
+These core columns identify the voter, represent critical Walk List data fields, and are universally required on all uploaded spreadsheets:
 ```csv
-First_Name, Middle_Name, Last_Name, Suffix, House, Street, City, Zip_Code, County, Birth_Date
+First_Name, Middle_Name, Last_Name, Suffix, House__, StreetNameComplete, City, Zip_Code, RNCfiles.HouseholdParty, Precinct, RNCfiles.Age, Sex
 ```
 
 ### 🔵 2. Optional Helpers (Blue Columns - Omitted Freely)
 Highly useful but completely optional. If omitted, they will never block uploading. The system handles empty fields with safe programmatic fallbacks:
 ```csv
-Precinct, Phone, Email, Municipality, Ward, Lived_Since, MAddress, MCity, MState, MZip
+Phone, RNCfiles.PrimaryPhone, Email, Municipality, Ward, Lived_Since, MAddress, MCity, MState, MZip, Date_Of_Birth, County
 ```
 * *Dynamic Fallback:* If `Municipality` is left blank, the suite automatically resolves it by looking up the `Precinct` number inside a background JSON directory!
 
@@ -106,11 +106,11 @@ The engine strictly validates and requires these headers **only** when performin
 * **Mail-In Ballots (`mail-in-voting`):**
   * Requires: `Mib_Address`, `Mib_City`, `Mib_State`, `Mib_Zip` (to know where to deliver the printed ballot papers)
 * **New Voter Registration (`new-registration`) & Change Party (`party-change`):**
-  * Requires: `Reason`, `Citizen`, `Age`, `Gender`, `Party` (to pre-fill Sections 2, 3, 4 & 8 on the registration form)
+  * Requires: `Citizen`, `RNCfiles.OfficialParty` (to pre-fill Sections 2 & 8 on the registration form)
 * **Change of Name (`name-change`):**
-  * Requires: `Reason`, `Citizen`, `Age`, `Gender`, `Party`, `Prev_Name` (Section 9: Previous Name)
+  * Requires: `Citizen`, `RNCfiles.OfficialParty`, `Prev_Name` (Section 9: Previous Name)
 * **Change of Address (`address-change`) & New Movers (`new-movers`):**
-  * Requires: `Reason`, `Citizen`, `Age`, `Gender`, `Party`, `Prev_Address` (Section 9: Previous Address)
+  * Requires: `Citizen`, `RNCfiles.OfficialParty`, `Prev_Address` (Section 9: Previous Address)
 
 ### 💾 4. In-Memory Dynamic CSV Template Downloader
 We have eliminated static template CSV files. When you click **"Download Sample CSV"** inside any workspace, the system automatically compiles a perfectly tailored CSV template containing exactly the required headers, optional helper columns, and a pre-filled sample row representing the active workflow, maintaining your exact spreadsheet column layout order.

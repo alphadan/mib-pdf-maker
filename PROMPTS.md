@@ -38,14 +38,14 @@ When responding to or writing code for this project, you must strictly follow th
 The spreadsheet ingestion engine (`src/utils/csvSchema.ts`) validates uploaded voter tables dynamically depending on the current active tab. It splits files into three color-coded checking tiers:
 
 1. **🟢 Universal Core (Green Columns - Mandatory on ALL Tabs):**
-   * `First_Name`, `Middle_Name`, `Last_Name`, `Suffix`, `House`, `Street`, `City`, `Zip_Code`, `County`, `Birth_Date`.
+   * `First_Name`, `Middle_Name`, `Last_Name`, `Suffix`, `House__`, `StreetNameComplete`, `City`, `Zip_Code`, `RNCfiles.HouseholdParty`, `Precinct`, `RNCfiles.Age`, `Sex`.
 2. **🔵 Optional Helpers (Blue Columns - Always Optional, Never Throw Errors):**
-   * `Precinct`, `Phone`, `Email`, `Municipality`, `Ward`, `Lived_Since`, `MAddress`, `MCity`, `MState`, `MZip`.
+   * `Phone`, `RNCfiles.PrimaryPhone`, `Email`, `Municipality`, `Ward`, `Lived_Since`, `MAddress`, `MCity`, `MState`, `MZip`, `Date_Of_Birth`, `County`.
 3. **🟡 Reason-Specific Context (Yellow Columns - Validated Dynamically):**
    * **Mail-In Ballot (`mail-in-voting`)**: `Mib_Address`, `Mib_City`, `Mib_State`, `Mib_Zip`
-   * **Voter Registration Purposes**: `Reason`, `Citizen`, `Age`, `Gender`, `Party`
-   * **Change of Name (`name-change`)**: `Reason`, `Citizen`, `Age`, `Gender`, `Party`, `Prev_Name`
-   * **Change of Address & New Movers**: `Reason`, `Citizen`, `Age`, `Gender`, `Party`, `Prev_Address`
+   * **Voter Registration Purposes**: `Citizen`, `RNCfiles.OfficialParty`
+   * **Change of Name (`name-change`)**: `Citizen`, `RNCfiles.OfficialParty`, `Prev_Name`
+   * **Change of Address & New Movers**: `Citizen`, `RNCfiles.OfficialParty`, `Prev_Address`
 
 ### Programmatic Mapping Overrides & Case Fallbacks:
 The importer maps raw CSV record values to unified schema-wide attributes using dual lowercase/uppercase fallback logic:

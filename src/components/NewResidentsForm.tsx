@@ -58,7 +58,7 @@ export default function NewResidentsForm({
     state: "PA",
     zip_code: "",
     municipality: "",
-    county: "",
+    county: "Chester",
     precinct: "",
     ward: "",
     mailing_address: "",

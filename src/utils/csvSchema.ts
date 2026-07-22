@@ -18,97 +18,99 @@ export const FORM_USES: FormUseConfig[] = [
     formType: "Mail-In",
     tabId: "mail-in-voting",
     pdfTemplate: "/PADOS_MailInApplication.pdf",
-    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House__", "StreetNameComplete", "City", "Zip_Code", "County", "RNCfiles.HouseholdParty"],
-    optionalFields: ["Precinct", "Phone", "RNCfiles.PrimaryPhone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress", "MCity", "MState", "MZip", "Date_Of_Birth"],
+    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House__", "StreetNameComplete", "Apt__", "City", "Zip_Code", "RNCfiles.HouseholdParty", "Precinct", "RNCfiles.Age", "Sex", "Date_Of_Birth", "County"],
+    optionalFields: ["RNCfiles.PrimaryPhone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress_Line_1", "MAddress_Line_2", "MCity", "MState", "MZip_Code"],
     requiredReasonSpecific: [],
-    optionalReasonSpecific: ["Reason", "Citizen", "RNCfiles.Age", "Gender", "RNCfiles.OfficialParty", "Prev_Name", "Prev_Address", "Mib_Address", "Mib_City", "Mib_State", "Mib_Zip"]
+    optionalReasonSpecific: ["Reason", "Citizen", "RNCfiles.OfficialParty", "Prev_Name", "Prev_Address", "Mib_Address", "Mib_City", "Mib_State", "Mib_Zip"]
   },
   {
     formType: "New Registration",
     tabId: "new-registration",
     pdfTemplate: "/PADOS_Registration_Application.pdf",
-    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House__", "StreetNameComplete", "City", "Zip_Code", "County", "RNCfiles.HouseholdParty"],
-    optionalFields: ["Precinct", "Phone", "RNCfiles.PrimaryPhone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress", "MCity", "MState", "MZip", "Date_Of_Birth"],
-    requiredReasonSpecific: ["Citizen", "RNCfiles.Age", "Gender", "RNCfiles.OfficialParty"],
+    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House__", "StreetNameComplete", "Apt__", "City", "Zip_Code", "RNCfiles.HouseholdParty", "Precinct", "RNCfiles.Age", "Sex", "Date_Of_Birth", "County"],
+    optionalFields: ["RNCfiles.PrimaryPhone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress_Line_1", "MAddress_Line_2", "MCity", "MState", "MZip_Code"],
+    requiredReasonSpecific: ["Citizen", "RNCfiles.OfficialParty"],
     optionalReasonSpecific: ["Reason", "Prev_Name", "Prev_Address", "Mib_Address", "Mib_City", "Mib_State", "Mib_Zip"]
   },
   {
     formType: "Change Name",
     tabId: "name-change",
     pdfTemplate: "/PADOS_Registration_Application.pdf",
-    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House__", "StreetNameComplete", "City", "Zip_Code", "County", "RNCfiles.HouseholdParty"],
-    optionalFields: ["Precinct", "Phone", "RNCfiles.PrimaryPhone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress", "MCity", "MState", "MZip", "Date_Of_Birth"],
-    requiredReasonSpecific: ["Citizen", "RNCfiles.Age", "Gender", "RNCfiles.OfficialParty", "Prev_Name"],
+    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House__", "StreetNameComplete", "Apt__", "City", "Zip_Code", "RNCfiles.HouseholdParty", "Precinct", "RNCfiles.Age", "Sex", "Date_Of_Birth", "County"],
+    optionalFields: ["RNCfiles.PrimaryPhone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress_Line_1", "MAddress_Line_2", "MCity", "MState", "MZip_Code"],
+    requiredReasonSpecific: ["Citizen", "RNCfiles.OfficialParty", "Prev_Name"],
     optionalReasonSpecific: ["Reason", "Prev_Address", "Mib_Address", "Mib_City", "Mib_State", "Mib_Zip"]
   },
   {
     formType: "Change Address",
     tabId: "address-change",
     pdfTemplate: "/PADOS_Registration_Application.pdf",
-    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House__", "StreetNameComplete", "City", "Zip_Code", "County", "RNCfiles.HouseholdParty"],
-    optionalFields: ["Precinct", "Phone", "RNCfiles.PrimaryPhone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress", "MCity", "MState", "MZip", "Date_Of_Birth"],
-    requiredReasonSpecific: ["Citizen", "RNCfiles.Age", "Gender", "RNCfiles.OfficialParty", "Prev_Address"],
+    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House__", "StreetNameComplete", "Apt__", "City", "Zip_Code", "RNCfiles.HouseholdParty", "Precinct", "RNCfiles.Age", "Sex", "Date_Of_Birth", "County"],
+    optionalFields: ["RNCfiles.PrimaryPhone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress_Line_1", "MAddress_Line_2", "MCity", "MState", "MZip_Code"],
+    requiredReasonSpecific: ["Citizen", "RNCfiles.OfficialParty", "Prev_Address"],
     optionalReasonSpecific: ["Reason", "Prev_Name", "Mib_Address", "Mib_City", "Mib_State", "Mib_Zip"]
   },
   {
     formType: "Change Party",
     tabId: "party-change",
     pdfTemplate: "/PADOS_Registration_Application.pdf",
-    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House__", "StreetNameComplete", "City", "Zip_Code", "County", "RNCfiles.HouseholdParty"],
-    optionalFields: ["Precinct", "Phone", "RNCfiles.PrimaryPhone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress", "MCity", "MState", "MZip", "Date_Of_Birth"],
-    requiredReasonSpecific: ["Citizen", "RNCfiles.Age", "Gender", "RNCfiles.OfficialParty"],
+    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House__", "StreetNameComplete", "Apt__", "City", "Zip_Code", "RNCfiles.HouseholdParty", "Precinct", "RNCfiles.Age", "Sex", "Date_Of_Birth", "County"],
+    optionalFields: ["RNCfiles.PrimaryPhone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress_Line_1", "MAddress_Line_2", "MCity", "MState", "MZip_Code"],
+    requiredReasonSpecific: ["Citizen", "RNCfiles.OfficialParty"],
     optionalReasonSpecific: ["Reason", "Prev_Name", "Prev_Address", "Mib_Address", "Mib_City", "Mib_State", "Mib_Zip"]
   },
   {
     formType: "Federal Residence",
     tabId: "federal-military",
     pdfTemplate: "/PADOS_Registration_Application.pdf",
-    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House__", "StreetNameComplete", "City", "Zip_Code", "County", "RNCfiles.HouseholdParty"],
-    optionalFields: ["Precinct", "Phone", "RNCfiles.PrimaryPhone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress", "MCity", "MState", "MZip", "Date_Of_Birth"],
-    requiredReasonSpecific: ["Citizen", "RNCfiles.Age", "Gender", "RNCfiles.OfficialParty"],
+    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House__", "StreetNameComplete", "Apt__", "City", "Zip_Code", "RNCfiles.HouseholdParty", "Precinct", "RNCfiles.Age", "Sex", "Date_Of_Birth", "County"],
+    optionalFields: ["RNCfiles.PrimaryPhone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress_Line_1", "MAddress_Line_2", "MCity", "MState", "MZip_Code"],
+    requiredReasonSpecific: ["Citizen", "RNCfiles.OfficialParty"],
     optionalReasonSpecific: ["Reason", "Prev_Name", "Prev_Address", "Mib_Address", "Mib_City", "Mib_State", "Mib_Zip"]
   },
   {
     formType: "New Movers",
     tabId: "new-movers",
     pdfTemplate: "/PADOS_Registration_Application.pdf",
-    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House__", "StreetNameComplete", "City", "Zip_Code", "County", "RNCfiles.HouseholdParty"],
-    optionalFields: ["Precinct", "Phone", "RNCfiles.PrimaryPhone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress", "MCity", "MState", "MZip", "Date_Of_Birth"],
-    requiredReasonSpecific: ["Citizen", "RNCfiles.Age", "Gender", "RNCfiles.OfficialParty", "Prev_Address"],
+    universalFields: ["First_Name", "Middle_Name", "Last_Name", "Suffix", "House__", "StreetNameComplete", "Apt__", "City", "Zip_Code", "RNCfiles.HouseholdParty", "Precinct", "RNCfiles.Age", "Sex", "Date_Of_Birth", "County"],
+    optionalFields: ["RNCfiles.PrimaryPhone", "Email", "Municipality", "Ward", "Lived_Since", "MAddress_Line_1", "MAddress_Line_2", "MCity", "MState", "MZip_Code"],
+    requiredReasonSpecific: ["Citizen", "RNCfiles.OfficialParty", "Prev_Address"],
     optionalReasonSpecific: ["Reason", "Prev_Name", "Mib_Address", "Mib_City", "Mib_State", "Mib_Zip"]
   }
 ];
 
 /**
- * 📋 Master Column Layout Order matching your Google Spreadsheet exactly.
+ * 📋 Master Column Layout Order matching your third party source exactly,
+ * with any yellow/reason-specific fields cleanly appended at the end.
  */
 export const SPREADSHEET_COLUMNS_ORDER = [
+  "Precinct",
   "First_Name",
   "Middle_Name",
   "Last_Name",
   "Suffix",
   "House__",
   "StreetNameComplete",
+  "Apt__",
   "City",
   "Zip_Code",
   "County",
+  "Date_Of_Birth",
+  "RNCfiles.Age",
+  "Sex",
   "RNCfiles.HouseholdParty",
-  "Precinct",
-  "Phone",
   "RNCfiles.PrimaryPhone",
   "Email",
   "Municipality",
   "Ward",
   "Lived_Since",
-  "MAddress",
+  "MAddress_Line_1",
+  "MAddress_Line_2",
   "MCity",
   "MState",
-  "MZip",
-  "Date_Of_Birth",
+  "MZip_Code",
   "Reason",
   "Citizen",
-  "RNCfiles.Age",
-  "Gender",
   "RNCfiles.OfficialParty",
   "Prev_Name",
   "Prev_Address",
@@ -129,7 +131,8 @@ export function getRequiredHeadersForReason(reason: string): string[] {
 }
 
 /**
- * Filters the master ordered spreadsheet columns to retrieve all columns relevant to a specific tab.
+ * Filters the master ordered spreadsheet columns to retrieve all columns relevant to a specific tab,
+ * maintaining the exact left-to-right third party column layout order.
  */
 export function getColumnsForReason(reason: string): string[] {
   const config = FORM_USES.find((f) => f.tabId === reason);
@@ -142,7 +145,7 @@ export function getColumnsForReason(reason: string): string[] {
     ...config.optionalReasonSpecific
   ]);
 
-  // Maintain Google Sheets column order
+  // Maintain precise third party column order
   return SPREADSHEET_COLUMNS_ORDER.filter((col) => relevantFields.has(col));
 }
 
@@ -163,6 +166,8 @@ export function getSampleDataForHeader(headerName: string, reason: string): stri
       return "123";
     case "StreetNameComplete":
       return "Main St";
+    case "Apt__":
+      return ""; // Default value is empty/Null, but the required column header is present!
     case "City":
       return "Atglen";
     case "Zip_Code":
@@ -173,7 +178,6 @@ export function getSampleDataForHeader(headerName: string, reason: string): stri
       return "11/04/1984";
     case "Precinct":
       return "5";
-    case "Phone":
     case "RNCfiles.PrimaryPhone":
       return "555-0199";
     case "Email":
@@ -184,13 +188,15 @@ export function getSampleDataForHeader(headerName: string, reason: string): stri
       return "";
     case "Lived_Since":
       return "2015";
-    case "MAddress":
+    case "MAddress_Line_1":
       return reason === "mail-in-voting" ? "" : "P.O. Box 789";
+    case "MAddress_Line_2":
+      return "";
     case "MCity":
       return reason === "mail-in-voting" ? "" : "Harrisburg";
     case "MState":
       return reason === "mail-in-voting" ? "" : "PA";
-    case "MZip":
+    case "MZip_Code":
       return reason === "mail-in-voting" ? "" : "17101";
     case "Reason":
       return reason === "new-registration"
@@ -208,7 +214,7 @@ export function getSampleDataForHeader(headerName: string, reason: string): stri
       return "yes";
     case "RNCfiles.Age":
       return "42";
-    case "Gender":
+    case "Sex":
       return "Male";
     case "RNCfiles.OfficialParty":
       return "Republican";

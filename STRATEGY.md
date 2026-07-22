@@ -75,17 +75,17 @@ The Pennsylvania Ballot Application Suite uses an advanced **Dynamic Context-Awa
 ### Database Requirement Tiers
 
 1. **🟢 Universal Core (Green Columns - Mandatory on ALL Uploads):**
-   * Verifies voter's primary identity and residential residence:
-   * Headers: `First_Name`, `Middle_Name`, `Last_Name`, `Suffix`, `House`, `Street`, `City`, `Zip_Code`, `County`, `Birth_Date`
+   * Verifies voter's identity, active residence, and provides critical Walk List fields:
+   * Headers: `First_Name`, `Middle_Name`, `Last_Name`, `Suffix`, `House__`, `StreetNameComplete`, `City`, `Zip_Code`, `RNCfiles.HouseholdParty`, `Precinct`, `RNCfiles.Age`, `Sex`
 2. **🔵 Optional Helpers (Blue Columns - Never Trigger Error Blocks):**
    * Helpful metadata parsed cleanly with safe fallback lookups if empty:
-   * Headers: `Precinct`, `Phone`, `Email`, `Municipality`, `Ward`, `Lived_Since`, `MAddress`, `MCity`, `MState`, `MZip`
+   * Headers: `Phone`, `RNCfiles.PrimaryPhone`, `Email`, `Municipality`, `Ward`, `Lived_Since`, `MAddress`, `MCity`, `MState`, `MZip`, `Date_Of_Birth`, `County`
 3. **🟡 Reason-Specific Context (Yellow Columns - Checked Contextually):**
    * Strictly checked and required depending on what tab you are on:
      * **Mail-In (`mail-in-voting`)**: `Mib_Address`, `Mib_City`, `Mib_State`, `Mib_Zip` (ballot papers delivery destination)
-     * **New Registration (`new-registration`) / Change Party (`party-change`) / Federal (`federal-military`)**: `Reason`, `Citizen`, `Age`, `Gender`, `Party`
-     * **Change of Name (`name-change`)**: `Reason`, `Citizen`, `Age`, `Gender`, `Party`, `Prev_Name`
-     * **Change of Address (`address-change`) / New Movers (`new-movers`)**: `Reason`, `Citizen`, `Age`, `Gender`, `Party`, `Prev_Address`
+     * **New Registration / Change Party / Federal**: `Citizen`, `RNCfiles.OfficialParty`
+     * **Change of Name (`name-change`)**: `Citizen`, `RNCfiles.OfficialParty`, `Prev_Name`
+     * **Change of Address (`address-change`) / New Movers (`new-movers`)**: `Citizen`, `RNCfiles.OfficialParty`, `Prev_Address`
 
 ### Automated Template Assembler (In-Memory Downloads)
 The suite dynamically generates templates on-the-fly. Clicking **"Download Sample CSV"** runs an in-memory compiler that stitches together the exact universal and specific headers required for the selected action, appends useful optional columns, creates a sample mock row, and triggers a download. This maintains your exact spreadsheet column layout order and eliminates the maintenance of separate static file resources.
